@@ -23,6 +23,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'matricule',
         'role',
         'filiere_id',
         'password',
@@ -56,12 +57,27 @@ class User extends Authenticatable
         return $this->belongsTo(Filiere::class);
     }
 
-    public function pvCrees(): HasMany
+    public function memoires(): HasMany
+    {
+        return $this->hasMany(Memoire::class, 'etudiant_id');
+    }
+
+    public function memoiresEncadres(): HasMany
+    {
+        return $this->hasMany(Memoire::class, 'encadreur_id');
+    }
+
+    public function validations(): HasMany
+    {
+        return $this->hasMany(ValidationMemoire::class, 'validateur_id');
+    }
+
+    public function pvDeliberationsCrees(): HasMany
     {
         return $this->hasMany(PvDeliberation::class, 'createur_id');
     }
 
-    public function pvValides(): HasMany
+    public function pvDeliberationsValides(): HasMany
     {
         return $this->hasMany(PvDeliberation::class, 'valide_par');
     }

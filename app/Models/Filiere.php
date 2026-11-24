@@ -9,17 +9,21 @@ class Filiere extends Model
 {
     protected $fillable = [
         'code',
-        'nom',
-        'departement',
+        'libelle',
     ];
-
-    public function pvDeliberations(): HasMany
-    {
-        return $this->hasMany(PvDeliberation::class);
-    }
 
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function memoires(): HasMany
+    {
+        return $this->hasMany(Memoire::class);
+    }
+
+    public function pvDeliberations(): HasMany
+    {
+        return $this->hasMany(PvDeliberation::class);
     }
 }

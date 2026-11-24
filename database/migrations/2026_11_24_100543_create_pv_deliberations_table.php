@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('president_jury', 150);
             $table->text('membres_jury')->nullable();
             $table->string('fichier_scan', 255);
-            $table->enum('statut', ['brouillon', 'validé', 'archivé'])->default('brouillon');
+            $table->enum('statut', ['brouillon', 'valide', 'archive'])->default('brouillon');
             $table->timestamp('valide_le')->nullable();
             $table->timestamps();
         });

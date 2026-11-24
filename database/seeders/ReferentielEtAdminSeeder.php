@@ -17,7 +17,7 @@ class ReferentielEtAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        $anneeActive = AnneeAcademique::updateOrCreate(
+        AnneeAcademique::updateOrCreate(
             ['libelle' => '2025-2026'],
             ['est_active' => true]
         );
@@ -28,18 +28,15 @@ class ReferentielEtAdminSeeder extends Seeder
         );
 
         $filieres = [
-            ['code' => 'IG', 'nom' => 'Informatique de Gestion', 'departement' => 'Gestion'],
-            ['code' => 'GFC', 'nom' => 'Gestion Finance et Comptabilité', 'departement' => 'Gestion'],
-            ['code' => 'STAT', 'nom' => 'Statistique', 'departement' => 'Planification et Statistique'],
+            ['code' => 'IG', 'libelle' => 'Informatique de Gestion'],
+            ['code' => 'GFC', 'libelle' => 'Gestion Finance et Comptabilité'],
+            ['code' => 'STAT', 'libelle' => 'Statistique'],
         ];
 
         foreach ($filieres as $filiere) {
             Filiere::updateOrCreate(
                 ['code' => $filiere['code']],
-                [
-                    'nom' => $filiere['nom'],
-                    'departement' => $filiere['departement'],
-                ]
+                ['libelle' => $filiere['libelle']]
             );
         }
 
