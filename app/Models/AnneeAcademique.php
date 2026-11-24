@@ -23,4 +23,9 @@ class AnneeAcademique extends Model
     {
         return $this->hasMany(Memoire::class);
     }
+
+    public function pvDeliberations(): HasMany
+    {
+        return $this->hasMany(PvDeliberation::class);
+    }
 }

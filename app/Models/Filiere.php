@@ -12,8 +12,18 @@ class Filiere extends Model
         'libelle',
     ];
 
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
     public function memoires(): HasMany
     {
         return $this->hasMany(Memoire::class);
+    }
+
+    public function pvDeliberations(): HasMany
+    {
+        return $this->hasMany(PvDeliberation::class);
     }
 }
