@@ -5,6 +5,8 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -21,6 +23,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'role',
+        'filiere_id',
         'password',
     ];
 
@@ -45,5 +49,25 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function filiere(): BelongsTo
+    {
+        return $this->belongsTo(Filiere::class);
+    }
+
+    public function pvCrees(): HasMany
+    {
+        return $this->hasMany(PvDeliberation::class, 'createur_id');
+    }
+
+    public function pvValides(): HasMany
+    {
+        return $this->hasMany(PvDeliberation::class, 'valide_par');
+    }
+
+    public function journalActions(): HasMany
+    {
+        return $this->hasMany(JournalAction::class);
     }
 }
