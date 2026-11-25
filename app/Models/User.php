@@ -64,4 +64,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActivityLog::class);
     }
+
+    public function pvDeliberationsCrees(): HasMany
+    {
+        return $this->hasMany(PvDeliberation::class, 'createur_id');
+    }
+
+    public function pvDeliberationsValides(): HasMany
+    {
+        return $this->hasMany(PvDeliberation::class, 'valide_par');
+    }
+
+    public function journalActions(): HasMany
+    {
+        return $this->hasMany(JournalAction::class);
+    }
 }

@@ -29,4 +29,9 @@ class AnneeAcademique extends Model
     {
         return $this->hasMany(Promotion::class, 'annee_academique_id');
     }
+
+    public function pvDeliberations(): HasMany
+    {
+        return $this->hasMany(PvDeliberation::class);
+    }
 }
