@@ -9,29 +9,40 @@
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
 </head>
-<body class="admin-body">
+<body class="admin-body" style="--admin-background-image: url('{{ asset('image/bk.jpeg') }}');">
     @php
-        $admin = [
-            'name' => 'Dr Jean Théophile Agadamè',
-            'role' => 'Administrateur',
-            'initials' => 'JA',
-        ];
-
+        // TODO: déterminer ce rôle depuis l'utilisateur authentifié lors du branchement du back-end.
+        $roleKey = $roleKey ?? 'admin';
+        $roleConfig = config('ui-roles.roles.'.$roleKey, config('ui-roles.roles.admin'));
+        $profile = $roleConfig['profile'];
         $hasAside = \Illuminate\Support\Facades\View::hasSection('aside');
     @endphp
 
     <div class="admin-shell">
         <div class="admin-frame{{ $hasAside ? ' admin-frame--with-aside' : '' }}">
-            @include('admin.partials.sidebar', ['admin' => $admin])
+            @include('admin.partials.sidebar', [
+                'profile' => $profile,
+                'navigation' => $roleConfig['sidebar'],
+                'roleKey' => $roleKey,
+            ])
 
             <div class="admin-sidebar-backdrop" data-sidebar-backdrop hidden></div>
 
             <div class="admin-main-column">
-                @include('admin.partials.topbar', ['admin' => $admin, 'showAccount' => ! $hasAside])
+                @include('admin.partials.topbar', [
+                    'profile' => $profile,
+                    'roleKey' => $roleKey,
+                    'roleConfig' => $roleConfig,
+                    'showAccount' => ! $hasAside,
+                ])
 
                 <main class="admin-content" id="admin-content" tabindex="-1">
                     @yield('content')
                 </main>
+
+                <footer class="admin-footer">
+                    <p class="admin-footer__line">© 2026 | ENEAM | Tous droits réservés.</p>
+                </footer>
             </div>
 
             @if ($hasAside)
@@ -42,6 +53,7 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/ui-motion.js') }}" defer></script>
     <script src="{{ asset('js/admin.js') }}" defer></script>
     @stack('scripts')
 </body>

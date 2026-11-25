@@ -21,8 +21,10 @@
             <div class="admin-settings-grid">
                 <section class="admin-card" aria-labelledby="admin-settings-general-title">
                     <div class="admin-card__head">
-                        <h2 class="admin-card__title" id="admin-settings-general-title">Général</h2>
-                        <x-admin.icon name="sliders" />
+                        <div class="admin-card__heading">
+                            <x-admin.icon name="sliders" />
+                            <h2 class="admin-card__title" id="admin-settings-general-title">Général</h2>
+                        </div>
                     </div>
                     <div class="admin-card__body">
                         <div class="admin-form-grid">
@@ -67,8 +69,10 @@
 
                 <section class="admin-card" aria-labelledby="admin-settings-files-title">
                     <div class="admin-card__head">
-                        <h2 class="admin-card__title" id="admin-settings-files-title">Fichiers</h2>
-                        <x-admin.icon name="upload" />
+                        <div class="admin-card__heading">
+                            <x-admin.icon name="upload" />
+                            <h2 class="admin-card__title" id="admin-settings-files-title">Fichiers</h2>
+                        </div>
                     </div>
                     <div class="admin-card__body">
                         <div class="admin-form-grid">
@@ -122,8 +126,10 @@
 
                 <section class="admin-card" aria-labelledby="admin-settings-security-title">
                     <div class="admin-card__head">
-                        <h2 class="admin-card__title" id="admin-settings-security-title">Sécurité</h2>
-                        <x-admin.icon name="shield" />
+                        <div class="admin-card__heading">
+                            <x-admin.icon name="shield" />
+                            <h2 class="admin-card__title" id="admin-settings-security-title">Sécurité</h2>
+                        </div>
                     </div>
                     <div class="admin-card__body">
                         <div class="admin-form-grid">
@@ -189,8 +195,10 @@
 
                 <section class="admin-card" aria-labelledby="admin-settings-journal-title">
                     <div class="admin-card__head">
-                        <h2 class="admin-card__title" id="admin-settings-journal-title">Journal</h2>
-                        <x-admin.icon name="journal" />
+                        <div class="admin-card__heading">
+                            <x-admin.icon name="journal" />
+                            <h2 class="admin-card__title" id="admin-settings-journal-title">Journal</h2>
+                        </div>
                     </div>
                     <div class="admin-card__body">
                         <div class="admin-form-grid">

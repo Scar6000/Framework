@@ -19,7 +19,7 @@
             <span class="admin-notification__icon"><x-admin.icon name="alert" /></span>
             <span class="admin-notification__text">
                 <strong>PV manquant détecté</strong>
-                <span>Comptabilité, L3, S2 — session normale.</span>
+                <span>PV manquant : Comptabilité, L3, session normale 2025-2026.</span>
             </span>
         </a>
 

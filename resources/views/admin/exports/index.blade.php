@@ -7,12 +7,12 @@
         $exportCards = [
             [
                 'title' => 'Liste des PV',
-                'text' => 'Exporte la liste complète des procès-verbaux avec références, promotions, sessions et statuts de validation.',
+                'text' => 'Exporte la liste complète des procès-verbaux avec références, promotions, sessions et statuts Brouillon ou Archivé.',
                 'icon' => 'pv',
             ],
             [
                 'title' => 'Résultats par promotion',
-                'text' => 'Regroupe les résultats par promotion, par semestre et par session pour l’année académique sélectionnée.',
+                'text' => 'Regroupe les résultats par promotion et par session pour l’année académique sélectionnée.',
                 'icon' => 'graduation',
             ],
             [
@@ -23,20 +23,20 @@
         ];
 
         $exportHistory = [
-            ['date' => '24/11/2026 — 09 h 42', 'initials' => 'JA', 'name' => 'Dr Jean Théophile Agadamè', 'role' => 'Administrateur', 'type' => 'Liste des PV', 'format' => 'Excel', 'icon' => 'file', 'scope' => 'Année 2025-2026 · Toutes promotions', 'status' => 'Prêt', 'tone' => 'blue'],
-            ['date' => '23/11/2026 — 16 h 05', 'initials' => 'AK', 'name' => 'Aminata Koné', 'role' => 'Agent de scolarité', 'type' => 'Résultats par promotion', 'format' => 'PDF', 'icon' => 'pdf', 'scope' => 'Banque et finance · L2 · S1', 'status' => 'Prêt', 'tone' => 'blue'],
-            ['date' => '22/11/2026 — 17 h 38', 'initials' => 'FL', 'name' => 'Fatou Ly', 'role' => 'Administrateur', 'type' => 'Statistiques comparatives', 'format' => 'Excel', 'icon' => 'file', 'scope' => '2023-2024 à 2025-2026', 'status' => 'Archivé', 'tone' => 'slate'],
-            ['date' => '20/11/2026 — 11 h 20', 'initials' => 'MD', 'name' => 'Mamadou Diop', 'role' => 'Chef de département', 'type' => 'Liste des PV', 'format' => 'PDF', 'icon' => 'pdf', 'scope' => 'Comptabilité et audit · L3', 'status' => 'Prêt', 'tone' => 'blue'],
-            ['date' => '19/11/2026 — 08 h 47', 'initials' => 'YB', 'name' => 'Yaya Bathily', 'role' => 'Agent de scolarité', 'type' => 'Résultats par promotion', 'format' => 'Excel', 'icon' => 'file', 'scope' => 'Marketing · L3 · Session normale', 'status' => 'Archivé', 'tone' => 'slate'],
-            ['date' => '18/11/2026 — 14 h 12', 'initials' => 'SN', 'name' => 'Sophie Nénesson', 'role' => 'Direction', 'type' => 'Statistiques comparatives', 'format' => 'PDF', 'icon' => 'pdf', 'scope' => 'Toutes filières · 2025-2026', 'status' => 'Prêt', 'tone' => 'blue'],
+            ['date' => '24/11/2026 — 09 h 42', 'initials' => 'JA', 'name' => 'Dr Jean Théophile Agadamè', 'role' => 'Administrateur', 'type' => 'Liste des PV', 'format' => 'Excel', 'icon' => 'file', 'scope' => 'Année 2025-2026 · Toutes promotions', 'status' => 'Brouillon', 'tone' => 'gold'],
+            ['date' => '23/11/2026 — 16 h 05', 'initials' => 'AK', 'name' => 'Aminata Koné', 'role' => 'Agent de scolarité', 'type' => 'Résultats par promotion', 'format' => 'PDF', 'icon' => 'pdf', 'scope' => 'Banque et finance · L2 · Session normale', 'status' => 'Brouillon', 'tone' => 'gold'],
+            ['date' => '22/11/2026 — 17 h 38', 'initials' => 'FL', 'name' => 'Fatou Ly', 'role' => 'Administrateur', 'type' => 'Statistiques comparatives', 'format' => 'Excel', 'icon' => 'file', 'scope' => '2023-2024 à 2025-2026', 'status' => 'Archivé', 'tone' => 'dark'],
+            ['date' => '20/11/2026 — 11 h 20', 'initials' => 'MD', 'name' => 'Mamadou Diop', 'role' => 'Chef de département', 'type' => 'Liste des PV', 'format' => 'PDF', 'icon' => 'pdf', 'scope' => 'Comptabilité et audit · L3', 'status' => 'Brouillon', 'tone' => 'gold'],
+            ['date' => '19/11/2026 — 08 h 47', 'initials' => 'YB', 'name' => 'Yaya Bathily', 'role' => 'Agent de scolarité', 'type' => 'Résultats par promotion', 'format' => 'Excel', 'icon' => 'file', 'scope' => 'Marketing · L3 · Session de rattrapage', 'status' => 'Archivé', 'tone' => 'dark'],
+            ['date' => '18/11/2026 — 14 h 12', 'initials' => 'SN', 'name' => 'Sophie Nénesson', 'role' => 'Chef de département', 'type' => 'Statistiques comparatives', 'format' => 'PDF', 'icon' => 'pdf', 'scope' => 'Toutes filières · 2025-2026', 'status' => 'Archivé', 'tone' => 'dark'],
         ];
 
         $sharedLinks = [
-            ['excerpt' => 'PV-2026-IG-L3-S2-014', 'excerptMeta' => 'Informatique de gestion · L3', 'recipient' => 'Conseil de département', 'recipientMeta' => 'conseil.ig@eneam.bj', 'createdBy' => 'Dr Jean Théophile Agadamè', 'createdAt' => '22/11/2026 — 10 h 18', 'expiresAt' => '06/12/2026', 'status' => 'Actif', 'tone' => 'blue'],
-            ['excerpt' => 'Résultats · Banque et finance L2', 'excerptMeta' => 'Session normale · Semestre 1', 'recipient' => 'Secrétariat de scolarité', 'recipientMeta' => 'scolarite@eneam.bj', 'createdBy' => 'Aminata Koné', 'createdAt' => '21/11/2026 — 15 h 02', 'expiresAt' => '05/12/2026', 'status' => 'Actif', 'tone' => 'blue'],
+            ['excerpt' => 'PV-2026-IG-L3-014', 'excerptMeta' => 'Informatique de gestion · L3 · Année 2025-2026', 'recipient' => 'Conseil de département', 'recipientMeta' => 'conseil.ig@eneam.bj', 'createdBy' => 'Dr Jean Théophile Agadamè', 'createdAt' => '22/11/2026 — 10 h 18', 'expiresAt' => '06/12/2026', 'status' => 'Actif', 'tone' => 'blue'],
+            ['excerpt' => 'Résultats · Banque et finance L2', 'excerptMeta' => 'Session normale · Année 2025-2026', 'recipient' => 'Secrétariat de scolarité', 'recipientMeta' => 'scolarite@eneam.bj', 'createdBy' => 'Aminata Koné', 'createdAt' => '21/11/2026 — 15 h 02', 'expiresAt' => '05/12/2026', 'status' => 'Actif', 'tone' => 'blue'],
             ['excerpt' => 'Statistiques comparatives 2025-2026', 'excerptMeta' => 'Toutes filières', 'recipient' => 'Direction des études', 'recipientMeta' => 'direction.etudes@eneam.bj', 'createdBy' => 'Fatou Ly', 'createdAt' => '12/11/2026 — 09 h 30', 'expiresAt' => '26/11/2026', 'status' => 'Expiré', 'tone' => 'slate'],
-            ['excerpt' => 'PV-2026-CCA-L3-S1-021', 'excerptMeta' => 'Comptabilité et audit · L3', 'recipient' => 'Bibliothèque centrale', 'recipientMeta' => 'bibliotheque@eneam.bj', 'createdBy' => 'Mamadou Diop', 'createdAt' => '08/11/2026 — 11 h 45', 'expiresAt' => '22/11/2026', 'status' => 'Révoqué', 'tone' => 'red'],
-            ['excerpt' => 'PV-2026-MK-L3-S1-012', 'excerptMeta' => 'Marketing · L3', 'recipient' => 'Service des examens', 'recipientMeta' => 'examens@eneam.bj', 'createdBy' => 'Dr Jean Théophile Agadamè', 'createdAt' => '05/11/2026 — 16 h 10', 'expiresAt' => '19/12/2026', 'status' => 'Actif', 'tone' => 'blue'],
+            ['excerpt' => 'PV-2026-CCA-L3-021', 'excerptMeta' => 'Comptabilité et audit · L3 · Année 2025-2026', 'recipient' => 'Bibliothèque centrale', 'recipientMeta' => 'bibliotheque@eneam.bj', 'createdBy' => 'Mamadou Diop', 'createdAt' => '08/11/2026 — 11 h 45', 'expiresAt' => '22/11/2026', 'status' => 'Révoqué', 'tone' => 'red'],
+            ['excerpt' => 'PV-2026-MK-L3-012', 'excerptMeta' => 'Marketing · L3 · Année 2025-2026', 'recipient' => 'Service des examens', 'recipientMeta' => 'examens@eneam.bj', 'createdBy' => 'Dr Jean Théophile Agadamè', 'createdAt' => '05/11/2026 — 16 h 10', 'expiresAt' => '19/12/2026', 'status' => 'Actif', 'tone' => 'blue'],
         ];
     @endphp
 
@@ -79,12 +79,8 @@
                                 <h2 class="admin-export-card__title">{{ $card['title'] }}</h2>
                                 <p class="admin-export-card__text">{{ $card['text'] }}</p>
                                 <div class="admin-export-card__actions">
-                                    <button class="admin-button admin-button--small admin-button--secondary" type="button">
-                                        <x-admin.icon name="file" /> Excel
-                                    </button>
-                                    <button class="admin-button admin-button--small" type="button">
-                                        <x-admin.icon name="pdf" /> PDF
-                                    </button>
+                                    <x-ui.btn variant="secondary" icon="file">Excel</x-ui.btn>
+                                    <x-ui.btn variant="primary" icon="pdf">PDF</x-ui.btn>
                                 </div>
                             </article>
                         @endforeach
@@ -93,51 +89,56 @@
 
                 <div class="admin-card__head">
                     <h2 class="admin-card__title" id="admin-exports-history-title">Historique des exports</h2>
-                    <button class="admin-button admin-button--small admin-button--secondary" type="button">
-                        <x-admin.icon name="filter" /> Filtrer
-                    </button>
+                    <x-ui.btn variant="secondary" icon="filter">Filtrer</x-ui.btn>
                 </div>
 
                 <div class="admin-table-wrap">
                     <table class="admin-table" aria-labelledby="admin-exports-history-title">
                         <caption class="sr-only" hidden>6 exports récents</caption>
+                        <colgroup>
+                            <col class="col-date">
+                            <col width="22%">
+                            <col width="18%">
+                            <col width="10%">
+                            <col width="24%">
+                            <col width="12%">
+                            <col class="col-actions">
+                        </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col">Date</th>
+                                <th scope="col" class="col-date">Date</th>
                                 <th scope="col">Utilisateur</th>
                                 <th scope="col">Type</th>
                                 <th scope="col">Format</th>
                                 <th scope="col">Périmètre</th>
                                 <th scope="col">Statut</th>
-                                <th scope="col"><span class="sr-only" hidden>Actions</span></th>
+                                <th scope="col" class="col-actions"><span class="sr-only" hidden>Actions</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($exportHistory as $export)
                                 <tr>
-                                    <td class="admin-muted">{{ $export['date'] }}</td>
+                                    <td class="admin-muted col-date">{{ $export['date'] }}</td>
                                     <td>
                                         <span class="admin-cell-user">
                                             <x-admin.avatar :initials="$export['initials']" size="sm" tone="soft" />
                                             <span class="admin-cell-user__text">
-                                                <span class="admin-table__primary">{{ $export['name'] }}</span>
+                                                <span class="admin-table__primary" title="{{ $export['name'] }}">{{ $export['name'] }}</span>
                                                 <span class="admin-table__subtext">{{ $export['role'] }}</span>
                                             </span>
                                         </span>
                                     </td>
-                                    <td>{{ $export['type'] }}</td>
+                                    <td title="{{ $export['type'] }}">{{ $export['type'] }}</td>
                                     <td>
                                         <span class="admin-export-card__actions">
                                             <x-admin.icon name="{{ $export['icon'] }}" /> {{ $export['format'] }}
                                         </span>
                                     </td>
-                                    <td>{{ $export['scope'] }}</td>
+                                    <td title="{{ $export['scope'] }}">{{ $export['scope'] }}</td>
                                     <td><x-admin.status :label="$export['status']" :tone="$export['tone']" /></td>
-                                    <td>
+                                    <td class="col-actions">
                                         <div class="admin-table__actions">
-                                            <a class="admin-table__link" href="#">
-                                                <x-admin.icon name="download" /> Télécharger
-                                            </a>
+                                            <x-ui.btn variant="compact" href="#" icon="download">Télécharger</x-ui.btn>
                                         </div>
                                     </td>
                                 </tr>
@@ -173,44 +174,52 @@
                 <div class="admin-table-wrap">
                     <table class="admin-table" aria-labelledby="admin-exports-links-title">
                         <caption class="sr-only" hidden>Liens de partage d’extraits</caption>
+                        <colgroup>
+                            <col class="col-ref">
+                            <col width="22%">
+                            <col width="16%">
+                            <col class="col-date">
+                            <col width="12%">
+                            <col width="12%">
+                            <col class="col-actions">
+                        </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col">Extrait partagé</th>
+                                <th scope="col" class="col-ref">Extrait partagé</th>
                                 <th scope="col">Destinataire</th>
                                 <th scope="col">Créé par</th>
-                                <th scope="col">Créé le</th>
+                                <th scope="col" class="col-date">Créé le</th>
                                 <th scope="col">Expire le</th>
                                 <th scope="col">Statut</th>
-                                <th scope="col"><span class="sr-only" hidden>Actions</span></th>
+                                <th scope="col" class="col-actions"><span class="sr-only" hidden>Actions</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($sharedLinks as $index => $link)
                                 <tr>
-                                    <td>
+                                    <td class="col-ref" title="{{ $link['excerpt'] }} — {{ $link['excerptMeta'] }}">
                                         <span class="admin-table__primary">{{ $link['excerpt'] }}</span>
                                         <span class="admin-table__subtext">{{ $link['excerptMeta'] }}</span>
                                     </td>
-                                    <td>
+                                    <td title="{{ $link['recipient'] }} — {{ $link['recipientMeta'] }}">
                                         <span class="admin-table__primary">{{ $link['recipient'] }}</span>
                                         <span class="admin-table__subtext">{{ $link['recipientMeta'] }}</span>
                                     </td>
                                     <td>{{ $link['createdBy'] }}</td>
-                                    <td class="admin-muted">{{ $link['createdAt'] }}</td>
+                                    <td class="admin-muted col-date">{{ $link['createdAt'] }}</td>
                                     <td class="admin-muted">{{ $link['expiresAt'] }}</td>
                                     <td><x-admin.status :label="$link['status']" :tone="$link['tone']" /></td>
-                                    <td>
+                                    <td class="col-actions">
                                         <div class="admin-table__actions">
                                             @if ($link['status'] === 'Actif')
-                                                <button
-                                                    class="admin-button admin-button--small admin-button--secondary"
+                                                <x-ui.btn
+                                                    variant="compact"
                                                     type="button"
+                                                    icon="lock"
                                                     data-modal-open
                                                     data-target="admin-revoke-modal-{{ $index }}"
                                                     aria-controls="admin-revoke-modal-{{ $index }}"
-                                                >
-                                                    <x-admin.icon name="lock" /> Révoquer
-                                                </button>
+                                                >Révoquer</x-ui.btn>
                                             @else
                                                 <span class="admin-muted admin-tiny">Aucune action</span>
                                             @endif
@@ -262,8 +271,8 @@
                                 </div>
 
                                 <div class="admin-modal__footer">
-                                    <button class="admin-button admin-button--small admin-button--secondary" type="button" data-overlay-close>Annuler</button>
-                                    <button class="admin-button admin-button--small" type="submit">Confirmer la révocation</button>
+                                    <x-ui.btn variant="secondary">Annuler</x-ui.btn>
+                                    <x-ui.btn variant="primary" type="submit">Confirmer la révocation</x-ui.btn>
                                 </div>
                             </form>
                         </div>

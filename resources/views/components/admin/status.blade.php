@@ -1,6 +1,14 @@
 @props(['label' => '', 'tone' => 'blue'])
 
-<span {{ $attributes->merge(['class' => 'admin-status admin-status--'.$tone]) }}>
-    <span class="admin-status__dot" aria-hidden="true"></span>
-    {{ $label }}
-</span>
+@php
+    $toneMap = [
+        'slate' => 'neutral',
+        'lightgold' => 'gold',
+        'gold' => 'gold',
+        'blue' => 'blue',
+        'dark' => 'dark',
+        'red' => 'red',
+    ];
+@endphp
+
+<x-ui.badge :label="$label" :tone="$toneMap[$tone] ?? 'neutral'" {{ $attributes }} />

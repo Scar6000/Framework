@@ -4,36 +4,32 @@
 
 @section('content')
     @php
-        $filieres = [
-            ['key' => 'ig', 'name' => 'Informatique de gestion', 'level' => 'L1'],
-            ['key' => 'bf', 'name' => 'Banque et finance', 'level' => 'L2'],
-            ['key' => 'cca', 'name' => 'Comptabilité contrôle et audit', 'level' => 'L3'],
-            ['key' => 'grh', 'name' => 'Gestion des ressources humaines', 'level' => 'L1'],
-            ['key' => 'mk', 'name' => 'Marketing', 'level' => 'L2'],
-            ['key' => 'st', 'name' => 'Statistique', 'level' => 'L3'],
+        $promotions = [
+            ['key' => 'ig-l1', 'name' => 'Informatique de gestion', 'level' => 'L1'],
+            ['key' => 'bf-l2', 'name' => 'Banque et finance', 'level' => 'L2'],
+            ['key' => 'cca-l3', 'name' => 'Comptabilité contrôle et audit', 'level' => 'L3'],
+            ['key' => 'grh-l1', 'name' => 'Gestion des ressources humaines', 'level' => 'L1'],
+            ['key' => 'mk-l2', 'name' => 'Marketing', 'level' => 'L2'],
+            ['key' => 'st-l3', 'name' => 'Statistique', 'level' => 'L3'],
         ];
 
         $sessions = [
-            ['key' => 's1-normale', 'label' => 'S1 Normale'],
-            ['key' => 's1-rattrapage', 'label' => 'S1 Rattrapage'],
-            ['key' => 's2-normale', 'label' => 'S2 Normale'],
-            ['key' => 's2-rattrapage', 'label' => 'S2 Rattrapage'],
-            ['key' => 's3-normale', 'label' => 'S3 Normale'],
-            ['key' => 's3-rattrapage', 'label' => 'S3 Rattrapage'],
+            ['key' => 'normale', 'label' => 'Session normale'],
+            ['key' => 'rattrapage', 'label' => 'Session de rattrapage'],
         ];
 
         $tracking = [
-            ['done', 'done', 'draft', 'missing', 'none', 'done'],
-            ['done', 'missing', 'done', 'draft', 'none', 'done'],
-            ['draft', 'done', 'missing', 'done', 'none', 'draft'],
-            ['done', 'done', 'done', 'missing', 'none', 'done'],
-            ['missing', 'done', 'draft', 'done', 'none', 'missing'],
-            ['done', 'draft', 'done', 'missing', 'none', 'done'],
+            ['archived', 'draft'],
+            ['archived', 'missing'],
+            ['draft', 'none'],
+            ['archived', 'archived'],
+            ['missing', 'draft'],
+            ['archived', 'missing'],
         ];
 
         $summaryCards = [
             ['label' => 'PV attendus', 'value' => '240', 'icon' => 'pv'],
-            ['label' => 'PV numérisés', 'value' => '212', 'icon' => 'check'],
+            ['label' => 'PV archivés', 'value' => '212', 'icon' => 'check'],
             ['label' => 'PV manquants', 'value' => '14', 'icon' => 'alert'],
             ['label' => 'PV en brouillon', 'value' => '25', 'icon' => 'clock'],
         ];
@@ -41,20 +37,14 @@
 
     <x-admin.page-header
         title="Plan de numérisation des PV"
-        subtitle="Suivi des procès-verbaux attendus par promotion, semestre et session pour l'année 2025-2026."
+        subtitle="Suivi des procès-verbaux attendus par promotion et par session pour l'année 2025-2026."
         :breadcrumb="['Accueil', 'Plan de numérisation']"
     >
         <x-slot:actions>
-            <x-admin.status label="14 manquants" tone="red" />
-            <x-admin.status label="25 brouillons" tone="gold" />
-            <button class="admin-button admin-button--secondary admin-button--small" type="button" data-drawer-open data-target="plan-config-drawer">
-                <x-admin.icon name="sliders" />
-                Configurer les PV attendus
-            </button>
-            <a class="admin-button admin-button--small" href="{{ route('admin.exports.index') }}">
-                <x-admin.icon name="download" />
-                Exporter
-            </a>
+            <x-ui.badge label="14 manquants" tone="red" />
+            <x-ui.badge label="25 brouillons" tone="gold" />
+            <x-ui.btn variant="secondary" icon="sliders" data-drawer-open="#plan-config-drawer">Configurer les PV attendus</x-ui.btn>
+            <x-ui.btn variant="primary" :href="route('admin.exports.index')" icon="download">Exporter</x-ui.btn>
         </x-slot:actions>
     </x-admin.page-header>
 
@@ -80,19 +70,16 @@
                 <span class="admin-field__label">Filière</span>
                 <select class="admin-select" id="plan-filiere" name="filiere">
                     <option value="" @selected(old('filiere', '') === '')>Toutes les filières</option>
-                    @foreach ($filieres as $filiere)
-                        <option value="{{ $filiere['key'] }}" @selected(old('filiere', '') === $filiere['key'])>
-                            {{ $filiere['name'] }} — {{ $filiere['level'] }}
+                    @foreach ($promotions as $promotion)
+                        <option value="{{ $promotion['key'] }}" @selected(old('filiere', '') === $promotion['key'])>
+                            {{ $promotion['name'] }} — {{ $promotion['level'] }}
                         </option>
                     @endforeach
                 </select>
             </label>
 
-            <button class="admin-button admin-button--small" type="submit">
-                <x-admin.icon name="filter" />
-                Appliquer
-            </button>
-            <a class="admin-button admin-button--secondary admin-button--small" href="{{ route('admin.plan.index') }}">Réinitialiser</a>
+            <x-ui.btn variant="primary" type="submit" icon="filter">Appliquer</x-ui.btn>
+            <x-ui.btn variant="secondary" :href="route('admin.plan.index')">Réinitialiser</x-ui.btn>
         </form>
     </section>
 
@@ -103,7 +90,7 @@
                 <p class="admin-section__hint">Situation arrêtée au 24 novembre 2026, toutes filières confondues.</p>
             </div>
             <div class="admin-section__actions">
-                <x-admin.status label="Campagne en cours" tone="blue" />
+                <x-ui.badge label="Campagne en cours" tone="blue" />
             </div>
         </div>
 
@@ -125,12 +112,12 @@
             <div class="admin-card">
                 <div class="admin-card__head">
                     <h3 class="admin-card__title">Couverture globale de la numérisation</h3>
-                    <x-admin.status label="88 %" tone="blue" />
+                    <x-ui.badge label="88 %" tone="blue" />
                 </div>
                 <div class="admin-card__body">
                     <div class="admin-progress-item__head">
                         <span class="admin-progress-item__text">
-                            <span class="admin-progress-item__name">212 PV numérisés sur 240 attendus</span>
+                            <span class="admin-progress-item__name">212 PV archivés sur 240 attendus</span>
                             <span class="admin-progress-item__meta">Reste 14 PV manquants et 25 PV en brouillon à traiter.</span>
                         </span>
                         <span class="admin-progress-item__value">88 %</span>
@@ -145,17 +132,11 @@
         <div class="admin-section__head">
             <div>
                 <h2 class="admin-section__title" id="plan-grid-title">Grille de suivi par promotion</h2>
-                <p class="admin-section__hint">Une case par semestre et par session. Passez le curseur sur une case manquante pour voir le détail.</p>
+                <p class="admin-section__hint">Une case par promotion et par session pour l'année 2025-2026. Passez le curseur sur une case manquante pour voir le détail.</p>
             </div>
             <div class="admin-section__actions">
-                <button class="admin-button admin-button--secondary admin-button--small" type="button" data-drawer-open data-target="plan-config-drawer">
-                    <x-admin.icon name="sliders" />
-                    Configurer les PV attendus
-                </button>
-                <a class="admin-button admin-button--small" href="{{ route('admin.exports.index') }}">
-                    <x-admin.icon name="download" />
-                    Exporter
-                </a>
+                <x-ui.btn variant="secondary" icon="sliders" data-drawer-open="#plan-config-drawer">Configurer les PV attendus</x-ui.btn>
+                <x-ui.btn variant="primary" :href="route('admin.exports.index')" icon="download">Exporter</x-ui.btn>
             </div>
         </div>
 
@@ -168,37 +149,39 @@
             <div class="admin-plan-scroll">
                 <table class="admin-plan-table">
                     <caption class="sr-only" hidden>Grille de suivi de la numérisation des PV par promotion et par session</caption>
+                    <colgroup>
+                        <col class="admin-plan-table__promotion" width="30%">
+                        <col width="35%">
+                        <col width="35%">
+                    </colgroup>
                     <thead>
                         <tr>
-                            <th class="admin-plan-table__promotion" rowspan="2" scope="col">Promotion</th>
-                            <th colspan="2" scope="colgroup">Semestre 1</th>
-                            <th colspan="2" scope="colgroup">Semestre 2</th>
-                            <th colspan="2" scope="colgroup">Semestre 3</th>
-                        </tr>
-                        <tr>
+                            <th class="admin-plan-table__promotion" scope="col">Promotion</th>
                             @foreach ($sessions as $session)
                                 <th scope="col">{{ $session['label'] }}</th>
                             @endforeach
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($filieres as $rowIndex => $filiere)
+                        @foreach ($promotions as $rowIndex => $promotion)
                             <tr>
-                                <th class="admin-plan-table__promotion" scope="row">
-                                    {{ $filiere['name'] }}
-                                    <span class="admin-tiny admin-muted">{{ $filiere['level'] }}</span>
+                                <th class="admin-plan-table__promotion" scope="row" title="{{ $promotion['name'] }} — {{ $promotion['level'] }}">
+                                    {{ $promotion['name'] }}
+                                    <span class="admin-tiny admin-muted">{{ $promotion['level'] }}</span>
                                 </th>
                                 @foreach ($sessions as $colIndex => $session)
                                     @php
                                         $state = $tracking[$rowIndex][$colIndex];
+                                        $stateLabel = $state === 'archived' ? 'Archivé' : ($state === 'draft' ? 'Brouillon' : ($state === 'missing' ? 'Manquant' : 'Non attendu'));
+                                        $stateDescription = $stateLabel.' : '.$promotion['name'].' '.$promotion['level'].', '.$session['label'];
                                     @endphp
                                     <td>
-                                        @if ($state === 'done')
-                                            <span class="admin-plan-cell" role="img" aria-label="Numérisé : {{ $filiere['name'] }} {{ $filiere['level'] }}, {{ $session['label'] }}">
+                                        @if ($state === 'archived')
+                                            <span class="admin-plan-cell" role="img" aria-label="{{ $stateDescription }}" title="{{ $stateDescription }}">
                                                 <x-admin.icon name="check" />
                                             </span>
                                         @elseif ($state === 'draft')
-                                            <span class="admin-plan-cell admin-plan-cell--draft" role="img" aria-label="Brouillon : {{ $filiere['name'] }} {{ $filiere['level'] }}, {{ $session['label'] }}">
+                                            <span class="admin-plan-cell admin-plan-cell--draft" role="img" aria-label="{{ $stateDescription }}" title="{{ $stateDescription }}">
                                                 <x-admin.icon name="clock" />
                                             </span>
                                         @elseif ($state === 'missing')
@@ -206,16 +189,18 @@
                                                 class="admin-plan-cell admin-plan-cell--missing"
                                                 role="img"
                                                 tabindex="0"
-                                                aria-label="Manquant : {{ $filiere['name'] }} {{ $filiere['level'] }}, {{ $session['label'] }}"
-                                                data-tooltip="PV manquant : {{ $filiere['name'] }} {{ $filiere['level'] }} — {{ $session['label'] }}"
+                                                aria-label="{{ $stateDescription }}"
+                                                title="{{ $stateDescription }}"
+                                                data-tooltip="PV manquant : {{ $promotion['name'] }} {{ $promotion['level'] }} — {{ $session['label'] }}"
                                             >
                                                 <x-admin.icon name="circle" />
                                             </span>
                                         @else
-                                            <span class="admin-plan-cell admin-plan-cell--none" role="img" aria-label="Non attendu : {{ $filiere['name'] }} {{ $filiere['level'] }}, {{ $session['label'] }}">
+                                            <span class="admin-plan-cell admin-plan-cell--none" role="img" aria-label="{{ $stateDescription }}" title="{{ $stateDescription }}">
                                                 <x-admin.icon name="minus" />
                                             </span>
                                         @endif
+                                        <span class="admin-tiny admin-muted">{{ $stateLabel }}</span>
                                     </td>
                                 @endforeach
                             </tr>
@@ -226,7 +211,7 @@
 
             <div class="admin-card__body">
                 <div class="admin-legend" aria-label="Légende de la grille de suivi">
-                    <span class="admin-legend__item"><span class="admin-plan-cell"><x-admin.icon name="check" /></span> Numérisé</span>
+                    <span class="admin-legend__item"><span class="admin-plan-cell"><x-admin.icon name="check" /></span> Archivé</span>
                     <span class="admin-legend__item"><span class="admin-plan-cell admin-plan-cell--draft"><x-admin.icon name="clock" /></span> Brouillon</span>
                     <span class="admin-legend__item"><span class="admin-plan-cell admin-plan-cell--missing"><x-admin.icon name="circle" /></span> Manquant</span>
                     <span class="admin-legend__item"><span class="admin-plan-cell admin-plan-cell--none"><x-admin.icon name="minus" /></span> Non attendu</span>
@@ -235,18 +220,7 @@
         </div>
     </section>
 
-    <div class="admin-drawer" id="plan-config-drawer" hidden role="dialog" aria-modal="true" aria-labelledby="plan-config-title">
-        <div class="admin-drawer__head">
-            <div>
-                <h2 class="admin-drawer__title" id="plan-config-title">Configurer les PV attendus</h2>
-                <p class="admin-drawer__subtitle">Année 2025-2026 — sélectionnez les sessions à suivre pour chaque promotion.</p>
-            </div>
-            <button class="admin-icon-button" type="button" data-overlay-close aria-label="Fermer le tiroir de configuration">
-                <x-admin.icon name="close" />
-            </button>
-        </div>
-
-        <div class="admin-drawer__body">
+    <x-ui.drawer id="plan-config-drawer" title="Configurer les PV attendus" subtitle="Année 2025-2026 — sélectionnez les sessions à suivre pour chaque promotion.">
             <form id="plan-config-form" action="{{ route('admin.plan.index') }}" method="POST">
                 @csrf
                 @method('PUT')
@@ -269,17 +243,17 @@
 
                 <div class="admin-section" id="plan-config-options">
                     <div class="admin-form-grid">
-                        @foreach ($filieres as $filiere)
+                        @foreach ($promotions as $promotion)
                             <div class="admin-field admin-form-grid__full">
-                                <span class="admin-field__label">{{ $filiere['name'] }} — {{ $filiere['level'] }}</span>
+                                <span class="admin-field__label">{{ $promotion['name'] }} — {{ $promotion['level'] }}</span>
                                 <div class="admin-form-grid">
                                     @foreach ($sessions as $session)
                                         <label class="admin-checkbox">
                                             <input
                                                 type="checkbox"
-                                                name="attendus[{{ $filiere['key'] }}][{{ $session['key'] }}]"
+                                                name="attendus[{{ $promotion['key'] }}][{{ $session['key'] }}]"
                                                 value="1"
-                                                @checked(old('attendus.'.$filiere['key'].'.'.$session['key'], true))
+                                                @checked(old('attendus.'.$promotion['key'].'.'.$session['key'], true))
                                                 aria-invalid="@error('attendus') true @else false @enderror"
                                                 aria-describedby="plan-config-help @error('attendus') plan-config-error @enderror"
                                             />
@@ -293,13 +267,12 @@
                 </div>
 
                 <div class="admin-form-actions">
-                    <button class="admin-button admin-button--small" type="submit">Enregistrer la configuration</button>
+                    <x-ui.btn variant="primary" type="submit">Enregistrer la configuration</x-ui.btn>
                 </div>
             </form>
-        </div>
 
-        <div class="admin-drawer__footer">
-            <button class="admin-button admin-button--secondary admin-button--small" type="button" data-overlay-close>Annuler</button>
-        </div>
-    </div>
+            <x-slot:footer>
+                <x-ui.btn variant="secondary">Annuler</x-ui.btn>
+            </x-slot:footer>
+    </x-ui.drawer>
 @endsection
