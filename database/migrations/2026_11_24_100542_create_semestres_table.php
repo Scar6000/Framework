@@ -6,23 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('semestres', function (Blueprint $table) {
             $table->id();
             $table->string('code', 10)->unique();
-            $table->string('libelle', 100);
-            $table->foreignId('niveau_id')->nullable()->constrained('niveaux')->nullOnDelete();
+            $table->string('libelle');
+            $table->foreignId('niveau_id')->constrained('niveaux')->cascadeOnDelete();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('semestres');

@@ -6,36 +6,35 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('pv_deliberations', function (Blueprint $table) {
+        Schema::create('pvs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('annee_academique_id')->constrained('annee_academiques')->cascadeOnDelete();
-            $table->foreignId('filiere_id')->constrained('filieres')->cascadeOnDelete();
-            $table->foreignId('niveau_id')->constrained('niveaux')->cascadeOnDelete();
-            $table->foreignId('semestre_id')->constrained('semestres')->cascadeOnDelete();
-            $table->foreignId('createur_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('valide_par')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('reference', 100)->unique();
+            $table->string('reference')->unique();
+            $table->foreignId('promotion_id')->constrained('promotions')->cascadeOnDelete();
             $table->enum('session', ['normale', 'rattrapage']);
             $table->date('date_deliberation');
-            $table->string('president_jury', 150);
-            $table->text('membres_jury')->nullable();
-            $table->string('fichier_scan', 255);
-            $table->enum('statut', ['brouillon', 'valide', 'archive'])->default('brouillon');
-            $table->timestamp('valide_le')->nullable();
+            $table->string('president_jury');
+            $table->json('membres_jury')->nullable();
+            $table->string('fichier_path');
+            $table->string('fichier_nom_original');
+            $table->string('fichier_mime');
+            $table->unsignedInteger('fichier_taille');
+            $table->enum('statut', ['brouillon', 'soumis', 'valide', 'archive'])->default('brouillon');
+            $table->text('motif_rejet')->nullable();
+            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
+            $table->timestamp('submitted_at')->nullable();
+            $table->foreignId('validated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('validated_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
+
+            $table->unique(['promotion_id', 'session'], 'pvs_promotion_session_unique');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('pv_deliberations');
+        Schema::dropIfExists('pvs');
     }
 };

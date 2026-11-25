@@ -7,25 +7,33 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LigneResultat extends Model
 {
+    protected $table = 'lignes_resultats';
+
     protected $fillable = [
-        'pv_deliberation_id',
-        'matricule',
-        'nom_prenoms',
-        'moyenne',
-        'credits_valides',
+        'pv_id',
+        'etudiant_id',
+        'moyenne_generale',
         'decision',
+        'mention',
+        'rang',
+        'observations',
     ];
 
     protected function casts(): array
     {
         return [
-            'moyenne' => 'decimal:2',
-            'credits_valides' => 'integer',
+            'moyenne_generale' => 'decimal:2',
+            'rang' => 'integer',
         ];
     }
 
-    public function pvDeliberation(): BelongsTo
+    public function pv(): BelongsTo
     {
-        return $this->belongsTo(PvDeliberation::class);
+        return $this->belongsTo(Pv::class);
+    }
+
+    public function etudiant(): BelongsTo
+    {
+        return $this->belongsTo(Etudiant::class);
     }
 }
