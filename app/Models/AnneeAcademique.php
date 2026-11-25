@@ -7,21 +7,27 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AnneeAcademique extends Model
 {
+    protected $table = 'annees_academiques';
+
     protected $fillable = [
         'libelle',
-        'est_active',
+        'date_debut',
+        'date_fin',
+        'est_en_cours',
     ];
 
     protected function casts(): array
     {
         return [
-            'est_active' => 'boolean',
+            'date_debut' => 'date',
+            'date_fin' => 'date',
+            'est_en_cours' => 'boolean',
         ];
     }
 
-    public function memoires(): HasMany
+    public function promotions(): HasMany
     {
-        return $this->hasMany(Memoire::class);
+        return $this->hasMany(Promotion::class, 'annee_academique_id');
     }
 
     public function pvDeliberations(): HasMany

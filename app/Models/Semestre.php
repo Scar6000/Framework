@@ -19,8 +19,8 @@ class Semestre extends Model
         return $this->belongsTo(Niveau::class);
     }
 
-    public function pvDeliberations(): HasMany
+    public function promotions(): HasMany
     {
-        return $this->hasMany(PvDeliberation::class);
+        return $this->hasMany(Promotion::class);
     }
 }

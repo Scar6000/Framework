@@ -10,15 +10,11 @@ class Niveau extends Model
     protected $fillable = [
         'code',
         'libelle',
+        'ordre',
     ];
 
     public function semestres(): HasMany
     {
         return $this->hasMany(Semestre::class);
-    }
-
-    public function pvDeliberations(): HasMany
-    {
-        return $this->hasMany(PvDeliberation::class);
     }
 }

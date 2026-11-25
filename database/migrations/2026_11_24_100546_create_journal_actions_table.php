@@ -6,27 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('journal_actions', function (Blueprint $table) {
+        Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('pv_deliberation_id')->nullable()->constrained('pv_deliberations')->nullOnDelete();
-            $table->string('action', 50); // ex: consultation, creation, modification, validation, archivage
-            $table->text('details')->nullable();
-            $table->string('adresse_ip', 45)->nullable();
-            $table->timestamps();
+            $table->string('action');
+            $table->string('entite');
+            $table->unsignedBigInteger('entite_id')->nullable();
+            $table->text('description')->nullable();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('journal_actions');
+        Schema::dropIfExists('activity_logs');
     }
 };
