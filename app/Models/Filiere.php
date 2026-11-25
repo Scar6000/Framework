@@ -9,11 +9,24 @@ class Filiere extends Model
 {
     protected $fillable = [
         'code',
-        'libelle',
+        'nom',
+        'is_active',
     ];
 
-    public function memoires(): HasMany
+    protected function casts(): array
     {
-        return $this->hasMany(Memoire::class);
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
+    public function promotions(): HasMany
+    {
+        return $this->hasMany(Promotion::class);
     }
 }

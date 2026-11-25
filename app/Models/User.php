@@ -2,53 +2,41 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
+        'nom',
+        'prenoms',
         'email',
-        'matricule',
+        'password',
         'role',
         'filiere_id',
-        'password',
+        'is_active',
+        'must_change_password',
+        'last_login_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -57,18 +45,23 @@ class User extends Authenticatable
         return $this->belongsTo(Filiere::class);
     }
 
-    public function memoires(): HasMany
+    public function pvsCreated(): HasMany
     {
-        return $this->hasMany(Memoire::class, 'etudiant_id');
+        return $this->hasMany(Pv::class, 'created_by');
     }
 
-    public function memoiresEncadres(): HasMany
+    public function pvsValidated(): HasMany
     {
-        return $this->hasMany(Memoire::class, 'encadreur_id');
+        return $this->hasMany(Pv::class, 'validated_by');
     }
 
-    public function validations(): HasMany
+    public function liensPartage(): HasMany
     {
-        return $this->hasMany(ValidationMemoire::class, 'validateur_id');
+        return $this->hasMany(LienPartage::class, 'created_by');
+    }
+
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
     }
 }
