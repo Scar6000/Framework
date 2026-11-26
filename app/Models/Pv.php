@@ -28,6 +28,7 @@ class Pv extends Model
     protected $casts = [
         'session' => SessionPv::class,
         'statut' => StatutPv::class,
+        'membres_jury' => 'array',
         'date_deliberation' => 'date',
         'submitted_at' => 'datetime',
         'validated_at' => 'datetime',

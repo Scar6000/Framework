@@ -24,7 +24,7 @@ class PvManquantsService
     {
         $promotions = Promotion::query()
             ->with([
-                'filiere', 'specialite', 'semestre.niveau',
+                'filiere', 'semestre.niveau',
                 'pvs' => fn ($q) => $q->withCount([
                     'lignes as nb_rattrapage' => fn ($l) => $l->where('decision', Decision::Rattrapage->value),
                 ]),
@@ -32,7 +32,7 @@ class PvManquantsService
             ->where('annee_academique_id', $annee->id)
             ->when($filiereId, fn ($q) => $q->where('filiere_id', $filiereId))
             ->get()
-            ->sortBy(fn ($p) => $p->filiere->code.'|'.$p->semestre->code.'|'.($p->specialite?->code ?? ''))
+            ->sortBy(fn ($p) => $p->filiere->code.'|'.$p->semestre->code)
             ->values();
 
         return $promotions->map(function (Promotion $p) {

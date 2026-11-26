@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 class PvSearchService
 {
     public const FILTRES = [
-        'annee_id', 'filiere_id', 'niveau_id', 'semestre_id', 'specialite_id',
+        'annee_id', 'filiere_id', 'niveau_id', 'semestre_id',
         'session', 'statut', 'decision', 'etudiant', 'q', 'mes_pv',
     ];
 
@@ -18,14 +18,13 @@ class PvSearchService
     {
         $q = Pv::query()
             ->visiblePour($user)
-            ->with(['promotion.filiere', 'promotion.annee', 'promotion.semestre.niveau', 'promotion.specialite', 'createur:id,name,prenoms']);
+            ->with(['promotion.filiere', 'promotion.annee', 'promotion.semestre.niveau', 'createur:id,nom,prenoms']);
 
         // Critères portant sur la promotion
         $promo = array_filter([
             'annee_academique_id' => $f['annee_id'] ?? null,
             'filiere_id' => $f['filiere_id'] ?? null,
             'semestre_id' => $f['semestre_id'] ?? null,
-            'specialite_id' => $f['specialite_id'] ?? null,
         ], fn ($v) => filled($v));
 
         if ($promo) {

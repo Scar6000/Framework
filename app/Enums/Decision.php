@@ -8,6 +8,7 @@ enum Decision: string
     case Ajourne = 'ajourne';
     case Rattrapage = 'rattrapage';
     case Exclu = 'exclu';
+    case Absent = 'absent';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum Decision: string
             self::Ajourne => 'Ajourné',
             self::Rattrapage => 'Rattrapage',
             self::Exclu => 'Exclu',
+            self::Absent => 'Absent',
         };
     }
 

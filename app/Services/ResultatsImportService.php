@@ -39,11 +39,10 @@ class ResultatsImportService
                 'matricule' => ['required', 'string', 'max:30'],
                 'nom' => ['required', 'string', 'max:150'],
                 'prenoms' => ['required', 'string', 'max:150'],
-                'moyenne' => ['required', 'numeric', 'between:0,20'],
-                'credits_valides' => ['required', 'integer', 'min:0', 'max:300'],
+                'moyenne_generale' => ['required', 'numeric', 'between:0,20'],
                 'decision' => ['required', Rule::enum(Decision::class)],
             ], [], [
-                'credits_valides' => 'crédits validés',
+                'moyenne_generale' => 'moyenne générale',
             ]);
 
             $messages = $v->fails() ? $v->errors()->all() : [];
@@ -72,7 +71,7 @@ class ResultatsImportService
                 $etudiant = Etudiant::ouCreer($d['matricule'], $d['nom'], $d['prenoms']);
                 $pv->lignes()->updateOrCreate(
                     ['etudiant_id' => $etudiant->id],
-                    ['moyenne' => $d['moyenne'], 'credits_valides' => $d['credits_valides'], 'decision' => $d['decision']]
+                    ['moyenne_generale' => $d['moyenne_generale'], 'decision' => $d['decision']]
                 );
             }
         });
@@ -85,25 +84,14 @@ class ResultatsImportService
     private function normaliser(array $row): array
     {
         $decision = Str::of((string) ($row['decision'] ?? ''))->trim()->lower()->ascii()->toString();
-        $moyenne = str_replace(',', '.', trim((string) ($row['moyenne'] ?? '')));
-        $credits = $row['credits_valides'] ?? $row['credits'] ?? null;
+        $moyenne = str_replace(',', '.', trim((string) ($row['moyenne_generale'] ?? $row['moyenne'] ?? '')));
 
         return [
             'matricule' => Str::upper(trim((string) ($row['matricule'] ?? ''))),
             'nom' => trim((string) ($row['nom'] ?? '')),
             'prenoms' => trim((string) ($row['prenoms'] ?? $row['prenom'] ?? '')),
-            'moyenne' => $moyenne === '' ? null : $moyenne,
-            'credits_valides' => $this->entier($credits),
+            'moyenne_generale' => $moyenne === '' ? null : $moyenne,
             'decision' => $decision === '' ? null : $decision,
         ];
-    }
-
-    private function entier(mixed $v): mixed
-    {
-        if ($v === null || $v === '') {
-            return null;
-        }
-
-        return is_numeric($v) && (float) $v == (int) $v ? (int) $v : $v;
     }
 }

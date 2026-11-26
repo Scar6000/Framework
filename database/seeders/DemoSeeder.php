@@ -26,13 +26,13 @@ class DemoSeeder extends Seeder
         ActivityLogger::$actif = false;
 
         $agent = User::updateOrCreate(['email' => 'agent@eneam.test'], [
-            'name' => 'AGBO', 'prenoms' => 'Mireille', 'password' => 'password',
+            'nom' => 'AGBO', 'prenoms' => 'Mireille', 'password' => 'password',
             'role' => Role::Scolarite, 'is_active' => true, 'must_change_password' => false,
         ]);
 
         foreach (Filiere::all() as $f) {
             User::updateOrCreate(['email' => 'chef.'.strtolower($f->code).'@eneam.test'], [
-                'name' => 'CHEF', 'prenoms' => $f->code, 'password' => 'password',
+                'nom' => 'CHEF', 'prenoms' => $f->code, 'password' => 'password',
                 'role' => Role::Chef, 'filiere_id' => $f->id, 'is_active' => true, 'must_change_password' => false,
             ]);
         }
@@ -59,7 +59,7 @@ class DemoSeeder extends Seeder
                 'session' => SessionPv::Normale,
                 'date_deliberation' => now()->subDays(20 + $i)->toDateString(),
                 'president_jury' => 'Pr. HOUESSOU',
-                'membres_jury' => 'Dr. A, Dr. B, Dr. C',
+                'membres_jury' => ['Dr. A', 'Dr. B', 'Dr. C'],
                 'fichier_path' => 'pv/demo.pdf',
                 'fichier_nom_original' => 'demo.pdf',
                 'fichier_mime' => 'application/pdf',
@@ -73,8 +73,7 @@ class DemoSeeder extends Seeder
             foreach ($etudiants as $k => $e) {
                 $pv->lignes()->create([
                     'etudiant_id' => $e->id,
-                    'moyenne' => [14.5, 12.0, 9.5, 7.25, 11.0][$k],
-                    'credits_valides' => [30, 30, 24, 18, 30][$k],
+                    'moyenne_generale' => [14.5, 12.0, 9.5, 7.25, 11.0][$k],
                     'decision' => $decisions[$k],
                 ]);
             }

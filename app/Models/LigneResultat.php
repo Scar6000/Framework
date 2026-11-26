@@ -13,11 +13,14 @@ class LigneResultat extends Model
 
     protected $table = 'lignes_resultats';
 
-    protected $fillable = ['pv_id', 'etudiant_id', 'moyenne', 'credits_valides', 'decision'];
+    protected $fillable = [
+        'pv_id', 'etudiant_id', 'moyenne_generale', 'decision',
+        'mention', 'rang', 'observations',
+    ];
 
     protected $casts = [
-        'moyenne' => 'decimal:2',
-        'credits_valides' => 'integer',
+        'moyenne_generale' => 'decimal:2',
+        'rang' => 'integer',
         'decision' => Decision::class,
     ];
 

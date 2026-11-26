@@ -27,11 +27,6 @@ class Filiere extends Model
         return $this->hasOne(User::class)->where('role', 'chef')->where('is_active', true);
     }
 
-    public function specialites(): HasMany
-    {
-        return $this->hasMany(Specialite::class);
-    }
-
     public function promotions(): HasMany
     {
         return $this->hasMany(Promotion::class);

@@ -59,7 +59,7 @@ class DashboardController extends Controller
         return $this->render('dashboard.chef', $commun + [
             'filiere' => $user->filiere,
             'pv_a_valider' => Pv::visiblePour($user)->where('statut', StatutPv::Soumis->value)
-                ->with('promotion.semestre', 'promotion.specialite')->latest('submitted_at')->get(),
+                ->with('promotion.semestre')->latest('submitted_at')->get(),
             'taux_reussite' => $stats->tauxReussite($filiereId),
         ]);
     }

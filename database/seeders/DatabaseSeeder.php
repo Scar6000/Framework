@@ -12,11 +12,7 @@ class DatabaseSeeder extends Seeder
         ActivityLogger::$actif = false; // pas de bruit dans le journal pendant le seed
 
         $this->call([
-            FiliereSeeder::class,
-            NiveauSemestreSeeder::class,
-            SpecialiteSeeder::class,
-            AnneeAcademiqueSeeder::class,
-            AdminSeeder::class,
+            ReferentielEtAdminSeeder::class,
         ]);
 
         ActivityLogger::$actif = true;

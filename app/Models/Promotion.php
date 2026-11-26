@@ -15,11 +15,9 @@ class Promotion extends Model
     protected $table = 'promotions';
 
     protected $fillable = [
-        'annee_academique_id', 'filiere_id', 'semestre_id', 'specialite_id',
+        'annee_academique_id', 'filiere_id', 'semestre_id',
         'est_attendue', 'date_limite',
     ];
-
-    protected $hidden = ['specialite_key'];
 
     protected $casts = [
         'est_attendue' => 'boolean',
@@ -39,11 +37,6 @@ class Promotion extends Model
     public function semestre(): BelongsTo
     {
         return $this->belongsTo(Semestre::class);
-    }
-
-    public function specialite(): BelongsTo
-    {
-        return $this->belongsTo(Specialite::class);
     }
 
     public function pvs(): HasMany
@@ -68,7 +61,6 @@ class Promotion extends Model
             $this->filiere?->code,
             $this->semestre?->niveau?->code,
             $this->semestre?->code,
-            $this->specialite?->code,
             $this->annee?->libelle,
         ])->filter()->implode(' · ');
     }

@@ -54,7 +54,7 @@ class PvController extends Controller
     {
         Gate::authorize('create', Pv::class);
 
-        $promotion = Promotion::with(['filiere', 'annee', 'semestre', 'specialite'])->findOrFail($request->input('promotion_id'));
+        $promotion = Promotion::with(['filiere', 'annee', 'semestre'])->findOrFail($request->input('promotion_id'));
         $session = SessionPv::from($request->input('session'));
 
         $pv = Pv::create([
@@ -76,7 +76,7 @@ class PvController extends Controller
         Gate::authorize('view', $pv);
         $user = $request->user();
 
-        $pv->load(['promotion.filiere', 'promotion.annee', 'promotion.semestre.niveau', 'promotion.specialite', 'createur', 'validateur']);
+        $pv->load(['promotion.filiere', 'promotion.annee', 'promotion.semestre.niveau', 'createur', 'validateur']);
 
         $lignes = $pv->lignes()->with('etudiant')
             ->join('etudiants', 'etudiants.id', '=', 'lignes_resultats.etudiant_id')
@@ -150,7 +150,7 @@ class PvController extends Controller
     {
         $annee = AnneeAcademique::enCours();
 
-        return Promotion::with(['filiere', 'semestre.niveau', 'specialite', 'annee'])
+        return Promotion::with(['filiere', 'semestre.niveau', 'annee'])
             ->when($annee, fn ($q) => $q->where('annee_academique_id', $annee->id))
             ->where('est_attendue', true)
             ->orderBy('filiere_id')->orderBy('semestre_id')
@@ -159,7 +159,7 @@ class PvController extends Controller
 
     private function genererReference(Promotion $p, SessionPv $session): string
     {
-        $base = collect(['PV', $p->filiere->code, $p->annee->libelle, $p->semestre->code, $p->specialite?->code, strtoupper($session->value)])
+        $base = collect(['PV', $p->filiere->code, $p->annee->libelle, $p->semestre->code, strtoupper($session->value)])
             ->filter()->implode('-');
 
         $ref = $base;

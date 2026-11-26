@@ -16,7 +16,6 @@ use App\Services\PvManquantsService;
 use Database\Seeders\AnneeAcademiqueSeeder;
 use Database\Seeders\FiliereSeeder;
 use Database\Seeders\NiveauSemestreSeeder;
-use Database\Seeders\SpecialiteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -26,12 +25,14 @@ class PvBackendTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const MESSAGE_COMPTE_DESACTIVE = 'Votre compte est désactivé. Pour demander sa réactivation, veuillez contacter l’administrateur de l’application.';
+
     protected function setUp(): void
     {
         parent::setUp();
         Storage::fake('local');
 
-        foreach ([FiliereSeeder::class, NiveauSemestreSeeder::class, SpecialiteSeeder::class, AnneeAcademiqueSeeder::class] as $seeder) {
+        foreach ([FiliereSeeder::class, NiveauSemestreSeeder::class, AnneeAcademiqueSeeder::class] as $seeder) {
             $this->seed($seeder);
         }
     }
@@ -40,7 +41,7 @@ class PvBackendTest extends TestCase
     private function user(Role $role, ?string $filiere = null, bool $actif = true, bool $changerMdp = false): User
     {
         return User::create([
-            'name' => 'Test', 'prenoms' => 'User', 'email' => uniqid().'@t.test',
+            'nom' => 'Test', 'prenoms' => 'User', 'email' => uniqid().'@t.test',
             'password' => 'password123', 'role' => $role,
             'filiere_id' => $filiere ? Filiere::where('code', $filiere)->value('id') : null,
             'is_active' => $actif, 'must_change_password' => $changerMdp,
@@ -69,7 +70,7 @@ class PvBackendTest extends TestCase
     private function ligne(Pv $pv, string $matricule = 'A1', string $decision = 'admis'): void
     {
         $e = Etudiant::ouCreer($matricule, 'DOE', 'John');
-        $pv->lignes()->create(['etudiant_id' => $e->id, 'moyenne' => 12, 'credits_valides' => 30, 'decision' => $decision]);
+        $pv->lignes()->create(['etudiant_id' => $e->id, 'moyenne_generale' => 12, 'decision' => $decision]);
     }
 
     // ---------- accès ----------
@@ -82,7 +83,34 @@ class PvBackendTest extends TestCase
     {
         $u = $this->user(Role::Scolarite, null, false);
 
-        $this->postJson('/connexion', ['email' => $u->email, 'password' => 'password123'])->assertStatus(422);
+        $this->postJson('/connexion', ['email' => $u->email, 'password' => 'password123'])
+            ->assertUnprocessable()
+            ->assertInvalid(['email' => self::MESSAGE_COMPTE_DESACTIVE]);
+    }
+
+    public function test_compte_desactive_affiche_un_message_dedie(): void
+    {
+        $u = $this->user(Role::Scolarite, null, false);
+
+        $response = $this->post('/connexion', ['email' => $u->email, 'password' => 'password123']);
+
+        $response->assertRedirect(route('login'))
+            ->assertSessionHas('compte_desactive', self::MESSAGE_COMPTE_DESACTIVE);
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee(self::MESSAGE_COMPTE_DESACTIVE, false);
+    }
+
+    public function test_compte_desactive_en_session_est_deconnecte(): void
+    {
+        $u = $this->user(Role::Scolarite);
+        $u->update(['is_active' => false]);
+
+        $response = $this->actingAs($u)->get(route('dashboard'));
+
+        $response->assertRedirect(route('login'))
+            ->assertSessionHas('compte_desactive', self::MESSAGE_COMPTE_DESACTIVE);
+        $this->assertGuest();
     }
 
     public function test_mot_de_passe_temporaire_doit_etre_change(): void
@@ -127,6 +155,45 @@ class PvBackendTest extends TestCase
         $this->actingAs($this->user(Role::Chef, 'GCO'))->getJson("/etudiants/{$etudiant->id}")->assertOk();
     }
 
+    public function test_le_tableau_de_bord_chef_affiche_un_message_personnalise_avec_sa_filiere(): void
+    {
+        $chef = $this->user(Role::Chef, 'IG');
+
+        $this->actingAs($chef)->get(route('dashboard'))
+            ->assertOk()
+            ->assertViewIs('dashboard.chef')
+            ->assertSee('Bonjour User', false)
+            ->assertSee('Chef de département', false)
+            ->assertSee('Informatique de Gestion', false);
+    }
+
+    public function test_le_registre_et_la_fiche_pv_sont_rendus_en_html_pour_le_chef(): void
+    {
+        $agent = $this->user(Role::Scolarite);
+        $pv = $this->pv($this->promotion('IG'), StatutPv::Soumis, $agent);
+        $chef = $this->user(Role::Chef, 'IG');
+
+        $this->actingAs($chef)->get(route('pv.index'))
+            ->assertOk()
+            ->assertViewIs('pv.index')
+            ->assertSee($pv->reference, false);
+
+        $this->actingAs($chef)->get(route('pv.show', $pv))
+            ->assertOk()
+            ->assertViewIs('pv.show')
+            ->assertSee($pv->reference, false)
+            ->assertSee('Valider le PV', false);
+    }
+
+    public function test_les_pages_consultation_du_chef_sont_rendues_en_html(): void
+    {
+        $chef = $this->user(Role::Chef, 'IG');
+
+        foreach (['recherche.index', 'pv-manquants.index', 'etudiants.index', 'statistiques.index', 'profil.show', 'notifications.index', 'password.change'] as $route) {
+            $this->actingAs($chef)->get(route($route))->assertOk();
+        }
+    }
+
     // ---------- workflow d'un PV ----------
     public function test_circuit_complet_creation_soumission_validation(): void
     {
@@ -146,7 +213,7 @@ class PvBackendTest extends TestCase
 
         $this->actingAs($agent)->postJson("/pv/{$id}/resultats", [
             'matricule' => 'IG001', 'nom' => 'DOE', 'prenoms' => 'John',
-            'moyenne' => 13.5, 'credits_valides' => 30, 'decision' => 'admis',
+            'moyenne_generale' => 13.5, 'decision' => 'admis',
         ])->assertCreated();
 
         $this->actingAs($agent)->postJson("/pv/{$id}/soumettre")->assertOk();
@@ -164,21 +231,21 @@ class PvBackendTest extends TestCase
         // un PV validé n'est plus modifiable par l'agent
         $this->actingAs($agent)->postJson("/pv/{$id}/resultats", [
             'matricule' => 'IG002', 'nom' => 'ROE', 'prenoms' => 'Jane',
-            'moyenne' => 10, 'credits_valides' => 20, 'decision' => 'ajourne',
+            'moyenne_generale' => 10, 'decision' => 'ajourne',
         ])->assertForbidden();
     }
 
     // ---------- promotions et PV manquants ----------
-    public function test_generation_des_promotions_avec_specialites(): void
+    public function test_generation_des_promotions_par_filiere_et_semestre(): void
     {
         $annee = AnneeAcademique::enCours();
         $gen = app(PromotionGenerator::class);
 
         $r = $gen->generer($annee);
-        // IG : S1-S4 (4) + S5,S6 x 2 spécialités (4) = 8 ; 7 autres filières x 6 semestres = 42
-        $this->assertSame(50, $r['creees']);
+        // 8 filières actives x 6 semestres = 48
+        $this->assertSame(48, $r['creees']);
 
-        $this->assertSame(2, Promotion::whereHas('filiere', fn ($q) => $q->where('code', 'IG'))
+        $this->assertSame(1, Promotion::whereHas('filiere', fn ($q) => $q->where('code', 'IG'))
             ->whereHas('semestre', fn ($q) => $q->where('code', 'S5'))->count());
         $this->assertSame(1, Promotion::whereHas('filiere', fn ($q) => $q->where('code', 'GCO'))
             ->whereHas('semestre', fn ($q) => $q->where('code', 'S5'))->count());
@@ -193,8 +260,8 @@ class PvBackendTest extends TestCase
         $service = app(PvManquantsService::class);
 
         $resume = $service->resume($annee);
-        $this->assertSame(50, $resume['attendus']);
-        $this->assertSame(50, $resume['manquants']);
+        $this->assertSame(48, $resume['attendus']);
+        $this->assertSame(48, $resume['manquants']);
 
         $agent = $this->user(Role::Scolarite);
         $promo = Promotion::where('annee_academique_id', $annee->id)
@@ -205,12 +272,12 @@ class PvBackendTest extends TestCase
 
         $resume = $service->resume($annee);
         $this->assertSame(1, $resume['complets']);
-        $this->assertSame(49, $resume['manquants']);
+        $this->assertSame(47, $resume['manquants']);
         $this->assertSame(1, $resume['rattrapages_manquants']); // rattrapage attendu mais absent
 
-        // périmètre d'un chef : 8 promotions pour IG
+        // périmètre d'un chef : 6 promotions pour IG
         $igId = Filiere::where('code', 'IG')->value('id');
-        $this->assertSame(8, $service->resume($annee, $igId)['attendus']);
+        $this->assertSame(6, $service->resume($annee, $igId)['attendus']);
     }
 
     // ---------- utilisateurs ----------
@@ -218,7 +285,7 @@ class PvBackendTest extends TestCase
     {
         $admin = $this->user(Role::Admin);
         $ig = Filiere::where('code', 'IG')->value('id');
-        $base = ['name' => 'A', 'prenoms' => 'B'];
+        $base = ['nom' => 'A', 'prenoms' => 'B'];
 
         // un chef doit avoir une filière
         $this->actingAs($admin)->postJson('/admin/utilisateurs', $base + ['email' => 'c1@t.test', 'role' => 'chef'])
@@ -237,8 +304,15 @@ class PvBackendTest extends TestCase
             ->assertStatus(422);
 
         // seul l'admin gère les comptes
-        $this->actingAs($this->user(Role::Scolarite))->getJson('/admin/utilisateurs')->assertForbidden();
-        $this->actingAs($this->user(Role::Chef, 'IG'))->getJson('/admin/utilisateurs')->assertForbidden();
+        $this->actingAs($this->user(Role::Scolarite))->getJson('/admin/utilisateurs')
+            ->assertForbidden()
+            ->assertJson(['message' => 'Accès refusé']);
+        $chef = User::where('email', 'c1@t.test')->firstOrFail();
+        $chef->update(['must_change_password' => false]);
+
+        $this->actingAs($chef)->getJson('/admin/utilisateurs')
+            ->assertForbidden()
+            ->assertJson(['message' => 'Accès refusé']);
     }
 
     public function test_l_admin_ne_peut_pas_se_desactiver(): void
@@ -254,7 +328,7 @@ class PvBackendTest extends TestCase
         $agent = $this->user(Role::Scolarite);
         $pv = $this->pv($this->promotion('IG'), StatutPv::Brouillon, $agent);
 
-        $csv = "matricule,nom,prenoms,moyenne,credits_valides,decision\nA1,DOE,John,12.5,30,admis\nA2,ROE,Jane,25,30,admis\n";
+        $csv = "matricule,nom,prenoms,moyenne_generale,decision\nA1,DOE,John,12.5,admis\nA2,ROE,Jane,25,admis\n";
         $envoyer = fn (array $extra = []) => $this->actingAs($agent)->withHeaders(['Accept' => 'application/json'])
             ->post("/pv/{$pv->id}/resultats/import", ['fichier' => UploadedFile::fake()->createWithContent('res.csv', $csv)] + $extra);
 

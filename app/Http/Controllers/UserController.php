@@ -26,9 +26,9 @@ class UserController extends Controller
             ->when($request->filled('actif'), fn ($q) => $q->where('is_active', $request->boolean('actif')))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $t = '%'.$request->input('q').'%';
-                $q->where(fn ($w) => $w->where('name', 'like', $t)->orWhere('prenoms', 'like', $t)->orWhere('email', 'like', $t));
+                $q->where(fn ($w) => $w->where('nom', 'like', $t)->orWhere('prenoms', 'like', $t)->orWhere('email', 'like', $t));
             })
-            ->orderBy('name')->paginate(15)->withQueryString();
+            ->orderBy('nom')->paginate(15)->withQueryString();
 
         return $this->render('admin.users.index', [
             'users' => $users,
@@ -48,7 +48,7 @@ class UserController extends Controller
         $temporaire = $this->motDePasseTemporaire();
 
         $user = User::create([
-            'name' => $data['name'],
+            'nom' => $data['nom'],
             'prenoms' => $data['prenoms'],
             'email' => $data['email'],
             'role' => $data['role'],
@@ -81,7 +81,7 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $user->update([
-            'name' => $data['name'],
+            'nom' => $data['nom'],
             'prenoms' => $data['prenoms'],
             'email' => $data['email'],
             'role' => $data['role'],

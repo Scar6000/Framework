@@ -16,7 +16,7 @@ class PromotionController extends Controller
     {
         $anneeId = $request->input('annee_id', AnneeAcademique::enCours()?->id);
 
-        $promotions = Promotion::with(['annee', 'filiere', 'semestre.niveau', 'specialite'])
+        $promotions = Promotion::with(['annee', 'filiere', 'semestre.niveau'])
             ->when($anneeId, fn ($q) => $q->where('annee_academique_id', $anneeId))
             ->when($request->filled('filiere_id'), fn ($q) => $q->where('filiere_id', $request->input('filiere_id')))
             ->orderBy('filiere_id')->orderBy('semestre_id')

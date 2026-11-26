@@ -30,14 +30,13 @@ class ExportController extends Controller
             $pv->promotion->annee->libelle,
             $pv->promotion->semestre->niveau->code,
             $pv->promotion->semestre->code,
-            $pv->promotion->specialite?->code,
             $pv->session->label(),
             $pv->date_deliberation->format('d/m/Y'),
             $pv->statut->label(),
         ])->all();
 
         return $this->sortie($request, 'liste_pv', 'Liste des PV de délibération',
-            ['Référence', 'Filière', 'Année', 'Niveau', 'Semestre', 'Spécialité', 'Session', 'Date', 'Statut'], $lignes);
+            ['Référence', 'Filière', 'Année', 'Niveau', 'Semestre', 'Session', 'Date', 'Statut'], $lignes);
     }
 
     public function resultats(Request $request, Pv $pv)
@@ -48,11 +47,11 @@ class ExportController extends Controller
             ->sortBy(fn ($l) => $l->etudiant->nom.' '.$l->etudiant->prenoms)
             ->map(fn ($l) => [
                 $l->etudiant->matricule, $l->etudiant->nom, $l->etudiant->prenoms,
-                $l->moyenne, $l->credits_valides, $l->decision->label(),
+                $l->moyenne_generale, $l->decision->label(), $l->mention, $l->rang,
             ])->values()->all();
 
         return $this->sortie($request, 'resultats_'.$pv->reference, 'Résultats du PV '.$pv->reference,
-            ['Matricule', 'Nom', 'Prénoms', 'Moyenne', 'Crédits validés', 'Décision'], $lignes);
+            ['Matricule', 'Nom', 'Prénoms', 'Moyenne générale', 'Décision', 'Mention', 'Rang'], $lignes);
     }
 
     public function statistiques(Request $request, StatistiquesService $stats)
@@ -80,14 +79,13 @@ class ExportController extends Controller
             $e['promotion']->filiere->code,
             $e['promotion']->semestre->niveau->code,
             $e['promotion']->semestre->code,
-            $e['promotion']->specialite?->code,
             $e['etat_label'],
             $e['en_retard'] ? 'Oui' : 'Non',
             $e['rattrapage_attendu'] ? 'Oui' : 'Non',
         ])->all();
 
         return $this->sortie($request, 'pv_manquants_'.$annee->libelle, 'État des PV — '.$annee->libelle,
-            ['Filière', 'Niveau', 'Semestre', 'Spécialité', 'État', 'En retard', 'Rattrapage attendu'], $lignes);
+            ['Filière', 'Niveau', 'Semestre', 'État', 'En retard', 'Rattrapage attendu'], $lignes);
     }
 
     private function sortie(Request $request, string $nom, string $titre, array $entetes, array $lignes)

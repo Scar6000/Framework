@@ -25,16 +25,23 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        DB::statement("
-            ALTER TABLE users
-            ADD COLUMN chef_filiere_unique BIGINT UNSIGNED GENERATED ALWAYS AS (
-                CASE
-                    WHEN role = 'chef' AND is_active = 1 AND deleted_at IS NULL THEN filiere_id
-                    ELSE NULL
-                END
-            ) STORED,
-            ADD UNIQUE INDEX users_chef_filiere_unique_idx (chef_filiere_unique)
-        ");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("
+                ALTER TABLE users
+                ADD COLUMN chef_filiere_unique BIGINT UNSIGNED GENERATED ALWAYS AS (
+                    CASE
+                        WHEN role = 'chef' AND is_active = 1 AND deleted_at IS NULL THEN filiere_id
+                        ELSE NULL
+                    END
+                ) STORED,
+                ADD UNIQUE INDEX users_chef_filiere_unique_idx (chef_filiere_unique)
+            ");
+        } else {
+            DB::statement("
+                CREATE UNIQUE INDEX users_chef_filiere_unique_idx ON users (filiere_id)
+                WHERE role = 'chef' AND is_active = 1 AND deleted_at IS NULL
+            ");
+        }
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

@@ -8,7 +8,6 @@ use App\Models\Filiere;
 use App\Models\Niveau;
 use App\Models\Promotion;
 use App\Models\Semestre;
-use App\Models\Specialite;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -16,7 +15,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Une seule page à 5 onglets : filieres · specialites · annees · niveaux · semestres
+ * Une seule page à 5 onglets : filieres · annees · niveaux · semestres · promotions.
+ * Les alias au singulier sont acceptés pour coller aux formulaires du front.
  * Routes : /admin/referentiels/{type}[/{id}]
  */
 class ReferentielController extends Controller
@@ -25,20 +25,25 @@ class ReferentielController extends Controller
 
     private const TYPES = [
         'filieres' => Filiere::class,
-        'specialites' => Specialite::class,
+        'filiere' => Filiere::class,
         'annees' => AnneeAcademique::class,
+        'annee' => AnneeAcademique::class,
         'niveaux' => Niveau::class,
+        'niveau' => Niveau::class,
         'semestres' => Semestre::class,
+        'semestre' => Semestre::class,
+        'promotions' => Promotion::class,
+        'promotion' => Promotion::class,
     ];
 
     public function index()
     {
         return $this->render('admin.referentiels.index', [
-            'filieres' => Filiere::with('specialites')->orderBy('code')->get(),
-            'specialites' => Specialite::with('filiere')->orderBy('filiere_id')->orderBy('code')->get(),
+            'filieres' => Filiere::orderBy('code')->get(),
             'annees' => AnneeAcademique::orderByDesc('libelle')->get(),
             'niveaux' => Niveau::orderBy('ordre')->get(),
             'semestres' => Semestre::with('niveau')->orderBy('code')->get(),
+            'promotions' => Promotion::with(['annee', 'filiere', 'semestre'])->orderBy('id')->get(),
         ]);
     }
 
@@ -47,7 +52,7 @@ class ReferentielController extends Controller
         $modele = $this->modele($type);
         $data = $request->validate($this->regles($type, null, $request));
 
-        if ($type === 'annees') {
+        if (in_array($type, ['annees', 'annee'], true)) {
             $data['est_en_cours'] = ! AnneeAcademique::where('est_en_cours', true)->exists();
         }
 
@@ -92,32 +97,36 @@ class ReferentielController extends Controller
         $id = $item?->getKey();
 
         return match ($type) {
-            'filieres' => [
+            'filieres', 'filiere' => [
                 'code' => ['required', 'string', 'max:10', Rule::unique('filieres', 'code')->ignore($id)],
                 'nom' => ['required', 'string', 'max:150'],
                 'is_active' => ['sometimes', 'boolean'],
             ],
-            'specialites' => [
-                'filiere_id' => ['required', 'exists:filieres,id'],
-                'code' => ['required', 'string', 'max:10',
-                    Rule::unique('specialites', 'code')->where('filiere_id', $request->input('filiere_id', $item?->filiere_id))->ignore($id)],
-                'nom' => ['required', 'string', 'max:150'],
-                'is_active' => ['sometimes', 'boolean'],
-            ],
-            'annees' => [
+            'annees', 'annee' => [
                 'libelle' => ['required', 'regex:/^\d{4}-\d{4}$/', Rule::unique('annees_academiques', 'libelle')->ignore($id)],
                 'date_debut' => ['required', 'date'],
                 'date_fin' => ['required', 'date', 'after:date_debut'],
             ],
-            'niveaux' => [
-                'code' => ['required', 'string', 'max:5', Rule::unique('niveaux', 'code')->ignore($id)],
+            'niveaux', 'niveau' => [
+                'code' => ['required', 'string', 'max:10', Rule::unique('niveaux', 'code')->ignore($id)],
                 'libelle' => ['required', 'string', 'max:100'],
                 'ordre' => ['required', 'integer', 'min:1', 'max:10'],
             ],
-            'semestres' => [
-                'code' => ['required', 'string', 'max:5', Rule::unique('semestres', 'code')->ignore($id)],
+            'semestres', 'semestre' => [
+                'code' => ['required', 'string', 'max:10', Rule::unique('semestres', 'code')->ignore($id)],
                 'libelle' => ['required', 'string', 'max:100'],
                 'niveau_id' => ['required', 'exists:niveaux,id'],
+            ],
+            'promotions', 'promotion' => [
+                'annee_academique_id' => ['required', 'exists:annees_academiques,id'],
+                'filiere_id' => ['required', 'exists:filieres,id'],
+                'semestre_id' => ['required', 'exists:semestres,id'],
+                'est_attendue' => ['sometimes', 'boolean'],
+                'date_limite' => ['nullable', 'date'],
+                Rule::unique('promotions')->where(fn ($q) => $q
+                    ->where('annee_academique_id', $request->input('annee_academique_id'))
+                    ->where('filiere_id', $request->input('filiere_id'))
+                    ->where('semestre_id', $request->input('semestre_id')))->ignore($id),
             ],
         };
     }
@@ -126,13 +135,13 @@ class ReferentielController extends Controller
     private function estUtilise(string $type, Model $item): ?string
     {
         return match ($type) {
-            'filieres' => User::where('filiere_id', $item->id)->exists() ? 'des utilisateurs y sont rattachés'
-                : (Specialite::where('filiere_id', $item->id)->exists() ? 'elle a des spécialités'
-                : (Promotion::where('filiere_id', $item->id)->exists() ? 'elle est utilisée par des promotions' : null)),
-            'specialites' => Promotion::where('specialite_id', $item->id)->exists() ? 'elle est utilisée par des promotions' : null,
-            'annees' => Promotion::where('annee_academique_id', $item->id)->exists() ? 'elle est utilisée par des promotions' : null,
-            'niveaux' => Semestre::where('niveau_id', $item->id)->exists() ? 'il a des semestres' : null,
-            'semestres' => Promotion::where('semestre_id', $item->id)->exists() ? 'il est utilisé par des promotions' : null,
+            'filieres', 'filiere' => User::where('filiere_id', $item->id)->exists()
+                ? 'des utilisateurs y sont rattachés'
+                : (Promotion::where('filiere_id', $item->id)->exists() ? 'elle est utilisée par des promotions' : null),
+            'annees', 'annee' => Promotion::where('annee_academique_id', $item->id)->exists() ? 'elle est utilisée par des promotions' : null,
+            'niveaux', 'niveau' => Semestre::where('niveau_id', $item->id)->exists() ? 'il a des semestres' : null,
+            'semestres', 'semestre' => Promotion::where('semestre_id', $item->id)->exists() ? 'il est utilisé par des promotions' : null,
+            'promotions', 'promotion' => $item->pvs()->exists() ? 'elle a des PV' : null,
             default => null,
         };
     }

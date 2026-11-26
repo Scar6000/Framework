@@ -18,12 +18,25 @@ abstract class UserRequest extends FormRequest
         return true; // protégé par le middleware role:admin
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'nom' => $this->input('nom', $this->input('name')),
+            'filiere_id' => $this->input('filiere_id', $this->input('rattachement')),
+            'role' => match ($this->input('role')) {
+                'administrateur' => 'admin',
+                'agent' => 'scolarite',
+                default => $this->input('role'),
+            },
+        ]);
+    }
+
     public function rules(): array
     {
         $user = $this->utilisateur();
 
         return [
-            'name' => ['required', 'string', 'max:100'],
+            'nom' => ['required', 'string', 'max:100'],
             'prenoms' => ['required', 'string', 'max:150'],
             'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($user?->id)],
             'role' => ['required', Rule::enum(Role::class)],

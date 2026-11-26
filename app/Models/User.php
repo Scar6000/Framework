@@ -15,7 +15,7 @@ class User extends Authenticatable
     use Auditable, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'name', 'prenoms', 'email', 'password', 'role', 'filiere_id',
+        'nom', 'prenoms', 'email', 'password', 'role', 'filiere_id',
         'is_active', 'must_change_password', 'last_login_at',
     ];
 
@@ -24,7 +24,6 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => Role::class,
             'is_active' => 'boolean',
@@ -60,7 +59,7 @@ class User extends Authenticatable
 
     public function getNomCompletAttribute(): string
     {
-        return trim($this->name.' '.$this->prenoms);
+        return trim($this->nom.' '.$this->prenoms);
     }
 
     protected $appends = ['nom_complet'];

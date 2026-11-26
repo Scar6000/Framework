@@ -15,6 +15,17 @@ abstract class PvRequest extends FormRequest
         return true; // droits vérifiés par PvPolicy dans le contrôleur
     }
 
+    protected function prepareForValidation(): void
+    {
+        $membres = $this->input('membres_jury');
+
+        if (is_string($membres)) {
+            $this->merge([
+                'membres_jury' => array_values(array_filter(array_map('trim', explode(',', $membres)))),
+            ]);
+        }
+    }
+
     protected function reglesCommunes(bool $fichierObligatoire): array
     {
         $pv = $this->pv();
@@ -23,7 +34,8 @@ abstract class PvRequest extends FormRequest
             'reference' => ['nullable', 'string', 'max:100', Rule::unique('pvs', 'reference')->ignore($pv?->id)],
             'date_deliberation' => ['required', 'date', 'before_or_equal:today'],
             'president_jury' => ['required', 'string', 'max:150'],
-            'membres_jury' => ['nullable', 'string', 'max:2000'],
+            'membres_jury' => ['nullable', 'array', 'max:20'],
+            'membres_jury.*' => ['string', 'max:150'],
             'fichier' => [
                 $fichierObligatoire ? 'required' : 'nullable',
                 'file', 'mimes:pdf,jpg,jpeg,png',

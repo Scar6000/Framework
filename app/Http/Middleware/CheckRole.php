@@ -14,7 +14,7 @@ class CheckRole
         $user = $request->user();
 
         if (! $user || ! in_array($user->role->value, $roles, true)) {
-            abort(403, 'Accès interdit pour votre rôle.');
+            abort(403, 'Accès refusé');
         }
 
         return $next($request);

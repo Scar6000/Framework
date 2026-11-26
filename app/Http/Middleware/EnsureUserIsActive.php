@@ -17,12 +17,13 @@ class EnsureUserIsActive
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+            $message = 'Votre compte est désactivé. Pour demander sa réactivation, veuillez contacter l’administrateur de l’application.';
 
             if ($request->expectsJson()) {
-                abort(403, 'Compte désactivé.');
+                abort(403, $message);
             }
 
-            return redirect()->route('login')->withErrors(['email' => 'Votre compte est désactivé.']);
+            return redirect()->route('login')->with('compte_desactive', $message);
         }
 
         return $next($request);

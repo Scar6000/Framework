@@ -13,13 +13,12 @@ class ActivityLog extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'user_id', 'action', 'subject_type', 'subject_id',
-        'anciennes_valeurs', 'nouvelles_valeurs', 'ip_address', 'user_agent', 'created_at',
+        'user_id', 'action', 'entite', 'entite_id', 'description',
+        'ip_address', 'user_agent', 'created_at',
     ];
 
     protected $casts = [
-        'anciennes_valeurs' => 'array',
-        'nouvelles_valeurs' => 'array',
+        'entite_id' => 'integer',
         'created_at' => 'datetime',
     ];
 

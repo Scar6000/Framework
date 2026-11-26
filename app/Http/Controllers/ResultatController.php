@@ -32,8 +32,10 @@ class ResultatController extends Controller
 
         $ligne = $pv->lignes()->create([
             'etudiant_id' => $etudiant->id,
-            'moyenne' => $d['moyenne'],
-            'credits_valides' => $d['credits_valides'],
+            'moyenne_generale' => $d['moyenne_generale'],
+            'mention' => $d['mention'] ?? null,
+            'rang' => $d['rang'] ?? null,
+            'observations' => $d['observations'] ?? null,
             'decision' => $d['decision'],
         ]);
 
@@ -76,8 +78,8 @@ class ResultatController extends Controller
     {
         return Excel::download(
             new ArrayExport(
-                [['E2025001', 'ADJOVI', 'Koffi', 12.5, 30, 'admis']],
-                ['matricule', 'nom', 'prenoms', 'moyenne', 'credits_valides', 'decision']
+                [['E2025001', 'ADJOVI', 'Koffi', 12.5, 'admis']],
+                ['matricule', 'nom', 'prenoms', 'moyenne_generale', 'decision']
             ),
             'modele_import_resultats.xlsx'
         );

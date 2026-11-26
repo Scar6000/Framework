@@ -174,6 +174,17 @@
                         </div>
                     @endif
 
+                    @if (session('compte_desactive'))
+                        <div class="auth-alert auth-alert--error" role="alert">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                                <circle cx="12" cy="12" r="9"></circle>
+                                <path d="M12 7v6"></path>
+                                <path d="M12 16.5h.01"></path>
+                            </svg>
+                            <p>{{ session('compte_desactive') }}</p>
+                        </div>
+                    @endif
+
                     @if (isset($errors) && $errors->any())
                         <div class="auth-alert auth-alert--error" role="alert">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
@@ -185,8 +196,8 @@
                         </div>
                     @endif
 
-                    {{-- TODO: brancher la route POST /login de l'authentification Laravel --}}
-                    <form class="auth-form" method="POST" action="{{ \Illuminate\Support\Facades\Route::has('login') ? route('login') : '#' }}">
+                    @unless (session('compte_desactive'))
+                        <form class="auth-form" method="POST" action="{{ \Illuminate\Support\Facades\Route::has('login') ? route('login') : '#' }}">
                         @csrf
 
                         <div class="auth-field @error('email') auth-field--invalid @enderror">
@@ -286,7 +297,10 @@
                             </svg>
                             <span>Accès réservé au personnel autorisé. Les connexions sont enregistrées.</span>
                         </p>
-                    </form>
+                        </form>
+                    @else
+                        <p class="auth-security"><a class="auth-link" href="{{ route('login') }}">Retour à la connexion</a></p>
+                    @endunless
                 </div>
             </div>
         </section>

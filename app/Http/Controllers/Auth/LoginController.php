@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Concerns\RendersView;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,7 +37,23 @@ class LoginController extends Controller
             ]);
         }
 
-        // is_active => true : un compte désactivé reçoit le même message qu'un mauvais mot de passe
+        $compteDesactive = User::where('email', $data['email'])->first()?->is_active === false
+            && Auth::validate(['email' => $data['email'], 'password' => $data['password']]);
+
+        if ($compteDesactive) {
+            RateLimiter::hit($cle, 60);
+            ActivityLogger::log('echec_connexion', null, null, ['email' => $data['email'], 'motif' => 'compte_desactive']);
+            $message = 'Votre compte est désactivé. Pour demander sa réactivation, veuillez contacter l’administrateur de l’application.';
+
+            if ($request->expectsJson()) {
+                throw ValidationException::withMessages(['email' => $message]);
+            }
+
+            return redirect()->route('login')
+                ->with('compte_desactive', $message)
+                ->withInput();
+        }
+
         $ok = Auth::attempt(
             ['email' => $data['email'], 'password' => $data['password'], 'is_active' => true],
             $request->boolean('remember')
@@ -45,7 +62,7 @@ class LoginController extends Controller
         if (! $ok) {
             RateLimiter::hit($cle, 60);
             ActivityLogger::log('echec_connexion', null, null, ['email' => $data['email']]);
-            throw ValidationException::withMessages(['email' => 'Identifiants incorrects ou compte désactivé.']);
+            throw ValidationException::withMessages(['email' => 'Identifiants incorrects.']);
         }
 
         RateLimiter::clear($cle);

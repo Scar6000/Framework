@@ -36,7 +36,7 @@ class EtudiantController extends Controller
 
         $lignes = $etudiant->lignes()
             ->whereHas('pv', fn ($p) => $p->visiblePour($user)->whereIn('statut', StatutPv::officiels()))
-            ->with(['pv.promotion.annee', 'pv.promotion.filiere', 'pv.promotion.semestre.niveau', 'pv.promotion.specialite'])
+            ->with(['pv.promotion.annee', 'pv.promotion.filiere', 'pv.promotion.semestre.niveau'])
             ->get();
 
         $parcours = $lignes->map(function ($l) {
@@ -49,10 +49,8 @@ class EtudiantController extends Controller
                 'filiere' => $p->filiere->code,
                 'niveau' => $p->semestre->niveau->code,
                 'semestre' => $p->semestre->code,
-                'specialite' => $p->specialite?->code,
                 'session' => $l->pv->session->value,
-                'moyenne' => $l->moyenne,
-                'credits_valides' => $l->credits_valides,
+                'moyenne_generale' => $l->moyenne_generale,
                 'decision' => $l->decision->value,
             ];
         })->sortBy([['annee', 'asc'], ['semestre', 'asc'], ['session', 'asc']])->values();

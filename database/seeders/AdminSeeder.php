@@ -14,7 +14,7 @@ class AdminSeeder extends Seeder
         User::updateOrCreate(
             ['email' => env('ADMIN_EMAIL', 'admin@eneam.test')],
             [
-                'name' => 'ADMIN',
+                'nom' => 'ADMIN',
                 'prenoms' => 'Système',
                 'password' => env('ADMIN_PASSWORD', 'ChangeMe@2026'),
                 'role' => Role::Admin,
