@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Enums\Role;
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,29 +12,20 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use Auditable, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'nom',
-        'prenoms',
-        'email',
-        'password',
-        'role',
-        'filiere_id',
-        'is_active',
-        'must_change_password',
-        'last_login_at',
+        'nom', 'prenoms', 'email', 'password', 'role', 'filiere_id',
+        'is_active', 'must_change_password', 'last_login_at',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     protected function casts(): array
     {
         return [
             'password' => 'hashed',
+            'role' => Role::class,
             'is_active' => 'boolean',
             'must_change_password' => 'boolean',
             'last_login_at' => 'datetime',
@@ -45,38 +37,30 @@ class User extends Authenticatable
         return $this->belongsTo(Filiere::class);
     }
 
-    public function pvsCreated(): HasMany
+    public function pvsCrees(): HasMany
     {
         return $this->hasMany(Pv::class, 'created_by');
     }
 
-    public function pvsValidated(): HasMany
+    public function isAdmin(): bool
     {
-        return $this->hasMany(Pv::class, 'validated_by');
+        return $this->role === Role::Admin;
     }
 
-    public function liensPartage(): HasMany
+    public function isScolarite(): bool
     {
-        return $this->hasMany(LienPartage::class, 'created_by');
+        return $this->role === Role::Scolarite;
     }
 
-    public function activityLogs(): HasMany
+    public function isChef(): bool
     {
-        return $this->hasMany(ActivityLog::class);
+        return $this->role === Role::Chef;
     }
 
-    public function pvDeliberationsCrees(): HasMany
+    public function getNomCompletAttribute(): string
     {
-        return $this->hasMany(PvDeliberation::class, 'createur_id');
+        return trim($this->nom.' '.$this->prenoms);
     }
 
-    public function pvDeliberationsValides(): HasMany
-    {
-        return $this->hasMany(PvDeliberation::class, 'valide_par');
-    }
-
-    public function journalActions(): HasMany
-    {
-        return $this->hasMany(JournalAction::class);
-    }
+    protected $appends = ['nom_complet'];
 }

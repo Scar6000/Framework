@@ -6,7 +6,7 @@
             </span>
             <span class="admin-brand__text">
                 <span class="admin-brand__name">ENEAM</span>
-                <span class="admin-brand__tagline">Gestion des PV</span>
+                <span class="admin-brand__tagline">{{ auth()->user()?->isChef() && auth()->user()?->filiere ? auth()->user()->filiere->nom : 'Gestion des PV' }}</span>
             </span>
             <button class="admin-icon-button admin-sidebar__close" type="button" data-sidebar-close aria-label="Fermer la navigation">
                 <x-admin.icon name="close" />
@@ -14,21 +14,46 @@
         </div>
 
         @php
-            $navItems = [
-                ['label' => 'Tableau de bord', 'route' => 'admin.dashboard', 'patterns' => ['admin.dashboard'], 'icon' => 'dashboard'],
-                ['label' => 'Utilisateurs', 'route' => 'admin.users.index', 'patterns' => ['admin.users.*'], 'icon' => 'users'],
-                ['label' => 'Rôles et permissions', 'route' => 'admin.roles.index', 'patterns' => ['admin.roles.*'], 'icon' => 'roles'],
-                ['label' => 'Référentiels', 'route' => 'admin.referentiels.index', 'patterns' => ['admin.referentiels.*'], 'icon' => 'referentiels'],
-                ['label' => 'Plan de numérisation', 'route' => 'admin.plan.index', 'patterns' => ['admin.plan.*'], 'icon' => 'plan'],
-                ['label' => 'Registre des PV', 'route' => 'admin.pv.index', 'patterns' => ['admin.pv.*'], 'icon' => 'pv'],
-                ['label' => 'Recherche', 'route' => 'admin.recherche.index', 'patterns' => ['admin.recherche.*', 'admin.etudiants.*'], 'icon' => 'search'],
-                ['label' => "Journal d'audit", 'route' => 'admin.journal.index', 'patterns' => ['admin.journal.*'], 'icon' => 'journal'],
-                ['label' => 'Exports et partages', 'route' => 'admin.exports.index', 'patterns' => ['admin.exports.*'], 'icon' => 'exports'],
-            ];
+            $utilisateur = auth()->user();
+
+            if ($utilisateur?->isChef()) {
+                $sectionLabel = 'Espace chef de département';
+                $navItems = [
+                    ['label' => 'Tableau de bord', 'route' => 'dashboard', 'patterns' => ['dashboard'], 'icon' => 'dashboard'],
+                    ['label' => 'Registre des PV', 'route' => 'pv.index', 'patterns' => ['pv.index', 'pv.show', 'pv.create', 'pv.edit'], 'icon' => 'pv'],
+                    ['label' => 'PV manquants', 'route' => 'pv-manquants.index', 'patterns' => ['pv-manquants.*'], 'icon' => 'alert'],
+                    ['label' => 'Recherche', 'route' => 'recherche.index', 'patterns' => ['recherche.index'], 'icon' => 'search'],
+                    ['label' => 'Étudiants', 'route' => 'etudiants.index', 'patterns' => ['etudiants.*'], 'icon' => 'graduation'],
+                    ['label' => 'Statistiques', 'route' => 'statistiques.index', 'patterns' => ['statistiques.index'], 'icon' => 'chart'],
+                    ['label' => 'Exports et partages', 'route' => 'exports.pv', 'patterns' => ['exports.*'], 'icon' => 'exports'],
+                ];
+            } elseif ($utilisateur?->isScolarite()) {
+                $sectionLabel = 'Espace scolarité';
+                $navItems = [
+                    ['label' => 'Tableau de bord', 'route' => 'dashboard', 'patterns' => ['dashboard'], 'icon' => 'dashboard'],
+                    ['label' => 'Registre des PV', 'route' => 'pv.index', 'patterns' => ['pv.index', 'pv.show', 'pv.create', 'pv.edit'], 'icon' => 'pv'],
+                    ['label' => 'PV manquants', 'route' => 'pv-manquants.index', 'patterns' => ['pv-manquants.*'], 'icon' => 'alert'],
+                    ['label' => 'Recherche', 'route' => 'recherche.index', 'patterns' => ['recherche.index'], 'icon' => 'search'],
+                    ['label' => 'Étudiants', 'route' => 'etudiants.index', 'patterns' => ['etudiants.*'], 'icon' => 'graduation'],
+                ];
+            } else {
+                $sectionLabel = 'Administration';
+                $navItems = [
+                    ['label' => 'Tableau de bord', 'route' => 'admin.dashboard', 'patterns' => ['admin.dashboard'], 'icon' => 'dashboard'],
+                    ['label' => 'Utilisateurs', 'route' => 'admin.users.index', 'patterns' => ['admin.users.*'], 'icon' => 'users'],
+                    ['label' => 'Rôles et permissions', 'route' => 'admin.roles.index', 'patterns' => ['admin.roles.*'], 'icon' => 'roles'],
+                    ['label' => 'Référentiels', 'route' => 'admin.referentiels.index', 'patterns' => ['admin.referentiels.*'], 'icon' => 'referentiels'],
+                    ['label' => 'Plan de numérisation', 'route' => 'admin.plan.index', 'patterns' => ['admin.plan.*'], 'icon' => 'plan'],
+                    ['label' => 'Registre des PV', 'route' => 'pv.index', 'patterns' => ['pv.index', 'pv.show', 'pv.create', 'pv.edit'], 'icon' => 'pv'],
+                    ['label' => 'Recherche', 'route' => 'recherche.index', 'patterns' => ['recherche.index', 'etudiants.*'], 'icon' => 'search'],
+                    ['label' => "Journal d'audit", 'route' => 'admin.journal.index', 'patterns' => ['admin.journal.*'], 'icon' => 'journal'],
+                    ['label' => 'Exports et partages', 'route' => 'exports.pv', 'patterns' => ['exports.*'], 'icon' => 'exports'],
+                ];
+            }
         @endphp
 
-        <nav class="admin-nav" aria-label="Sections de l'administration">
-            <span class="admin-nav__label">Administration</span>
+        <nav class="admin-nav" aria-label="Sections de l'espace de travail">
+            <span class="admin-nav__label">{{ $sectionLabel }}</span>
 
             @foreach ($navItems as $item)
                 @php
@@ -45,8 +70,7 @@
         </nav>
 
         <div class="admin-sidebar__footer">
-            {{-- TODO: brancher la route POST /logout de l'authentification Laravel --}}
-            <form method="POST" action="{{ \Illuminate\Support\Facades\Route::has('logout') ? route('logout') : '#' }}">
+            <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button class="admin-logout" type="submit">
                     <x-admin.icon name="logout" />

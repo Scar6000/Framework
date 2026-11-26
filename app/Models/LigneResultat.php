@@ -2,30 +2,27 @@
 
 namespace App\Models;
 
+use App\Enums\Decision;
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LigneResultat extends Model
 {
+    use Auditable;
+
     protected $table = 'lignes_resultats';
 
     protected $fillable = [
-        'pv_id',
-        'etudiant_id',
-        'moyenne_generale',
-        'decision',
-        'mention',
-        'rang',
-        'observations',
+        'pv_id', 'etudiant_id', 'moyenne_generale', 'decision',
+        'mention', 'rang', 'observations',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'moyenne_generale' => 'decimal:2',
-            'rang' => 'integer',
-        ];
-    }
+    protected $casts = [
+        'moyenne_generale' => 'decimal:2',
+        'rang' => 'integer',
+        'decision' => Decision::class,
+    ];
 
     public function pv(): BelongsTo
     {
