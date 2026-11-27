@@ -1,11 +1,10 @@
 @php
     $drawerId = 'pv-detail-'.$pvIndex;
     $isArchived = ($pv['status'] ?? '') === 'Archivé';
-    $canManage = in_array($roleKey, ['admin', 'agent'], true);
     $isAdmin = $roleKey === 'admin';
-    $canDownload = $canManage;
-    $canEdit = $canManage && (! $isArchived || $isAdmin);
-    $filiereLabel = collect(config('ui-demo.filieres', []))->firstWhere('code', $pv['filiere'] ?? '')['label'] ?? ($pv['filiere'] ?? '');
+    $isAgent = $roleKey === 'agent';
+    $canEdit = $isAdmin || ($isAgent && ! $isArchived);
+    $filiereLabel = collect($filieres ?? [])->firstWhere('code', $pv['filiere'] ?? '')['label'] ?? ($pv['filiere'] ?? '');
     $infosTabId = 'pv-infos-tab-'.$pvIndex;
     $resultatsTabId = 'pv-resultats-tab-'.$pvIndex;
 @endphp
@@ -22,7 +21,7 @@
     <div class="ui-pv-layout">
         <div>
             <h3 class="admin-section__title">Aperçu du document</h3>
-            <x-ui.viewer :reference="$pv['reference']" :pages="$pv['pages'] ?? 5" :can-download="$canDownload" />
+            <x-ui.viewer :reference="$pv['reference']" :pages="$pv['pages'] ?? 5" :can-download="false" />
         </div>
 
         <div>
@@ -74,7 +73,7 @@
                             </div>
                             <div class="admin-info-row">
                                 <dt>Membres du jury</dt>
-                                <dd title="{{ implode(', ', $pv['membres'] ?? []) }}">{{ implode(', ', $pv['membres'] ?? []) }}</dd>
+                                <dd title="{{ implode(', ', $pv['membres'] ?? []) }}">{{ implode(', ', $pv['membres'] ?? []) ?: '—' }}</dd>
                             </div>
                             <div class="admin-info-row">
                                 <dt>Enregistré par</dt>
@@ -113,7 +112,8 @@
                     'pv' => $pv,
                     'roleKey' => $roleKey,
                     'resultKey' => 'pv-'.$pvIndex,
-                    'canEditResults' => $canEdit,
+                    'resultats' => [],
+                    'canEditResults' => false,
                 ])
             </div>
         </div>

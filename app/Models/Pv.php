@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -64,5 +65,20 @@ class Pv extends Model
     public function liensPartage(): HasMany
     {
         return $this->hasMany(LienPartage::class);
+    }
+
+    /** Le chef de département ne voit que les PV des filières de son département. */
+    public function scopeVisiblePour(Builder $query, User $user): Builder
+    {
+        $codes = $user->departementFilieres();
+
+        if ($user->isChef() && $codes !== []) {
+            return $query->whereHas(
+                'promotion.filiere',
+                fn (Builder $filiere): Builder => $filiere->whereIn('code', $codes)
+            );
+        }
+
+        return $query;
     }
 }

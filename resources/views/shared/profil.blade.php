@@ -5,8 +5,7 @@
 @section('content')
     @php
         $roleKey = $roleKey ?? 'admin';
-        $roleConfig = config('ui-roles.roles.'.$roleKey, config('ui-roles.roles.admin'));
-        $profile = $roleConfig['profile'];
+        $profile = $profile ?? config('ui-roles.roles.'.$roleKey.'.profile', config('ui-roles.roles.admin.profile'));
         $profileRoute = \Illuminate\Support\Facades\Route::has($roleKey.'.profil') ? route($roleKey.'.profil') : '#';
         $dashboardRoute = \Illuminate\Support\Facades\Route::has($roleKey.'.dashboard')
             ? route($roleKey.'.dashboard')
@@ -37,6 +36,13 @@
         :breadcrumb="['Accueil', 'Mon profil']"
     />
 
+    @if (session('success'))
+        <div class="ui-notice ui-notice--success" role="status">
+            <x-admin.icon name="check" />
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+
     <section class="admin-section" aria-labelledby="shared-profil-infos-title">
         <div class="admin-section__head">
             <div>
@@ -59,7 +65,7 @@
                 <dl class="admin-info-list">
                     <div class="admin-info-row">
                         <dt>Nom</dt>
-                        <dd>{{ $profile['name'] }}</dd>
+                        <dd>{{ $profile['full_name'] ?? $profile['name'] }}</dd>
                     </div>
                     <div class="admin-info-row">
                         <dt>E-mail</dt>
@@ -86,7 +92,7 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ $profileRoute }}">
+        <form method="POST" action="{{ route('profil.password.update') }}">
             @csrf
             @method('PUT')
 

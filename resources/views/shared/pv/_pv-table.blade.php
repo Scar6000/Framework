@@ -5,14 +5,14 @@
             <p class="admin-section__hint">Sélectionnez une référence ou « Aperçu » pour consulter le dossier complet.</p>
         </div>
         <div class="admin-section__actions">
-            <x-ui.badge :label="(string) count($pvs).' PV affichés'" tone="neutral" />
+            <x-ui.badge :label="count($pvs).' PV affichés'" tone="neutral" />
         </div>
     </div>
 
     <div class="admin-card admin-card--flush">
         <div class="admin-card__head">
             <h3 class="admin-card__title">Liste des procès-verbaux</h3>
-            <span class="admin-tiny admin-muted">Registre partagé</span>
+            <span class="admin-tiny admin-muted">Registre de l'application</span>
         </div>
 
         <div class="admin-table-wrap">
@@ -42,54 +42,21 @@
                     @forelse ($pvs as $pvIndex => $pv)
                         @php
                             $isArchived = ($pv['status'] ?? '') === 'Archivé';
-                            $isDraft = ($pv['status'] ?? '') === 'Brouillon';
                             $isAdmin = $roleKey === 'admin';
                             $isAgent = $roleKey === 'agent';
                             $actions = [];
                             $emptyMessage = '';
 
-                            if ($isAdmin) {
-                                if ($isDraft) {
-                                    $actions[] = [
-                                        'label' => 'Corriger',
-                                        'icon' => 'pencil',
-                                        'url' => route($roleKey.'.pv.edit', $pv['reference']),
-                                    ];
-                                    $actions[] = [
-                                        'label' => 'Archiver',
-                                        'icon' => 'archive',
-                                        'modal' => 'pv-archive-'.$pvIndex,
-                                    ];
-                                } elseif ($isArchived) {
-                                    $actions[] = [
-                                        'label' => 'Corriger',
-                                        'icon' => 'pencil',
-                                        'modal' => 'pv-correct-'.$pvIndex,
-                                        'reason' => 'Motif obligatoire pour un PV archivé',
-                                    ];
-                                    $actions[] = [
-                                        'label' => 'Déverrouiller',
-                                        'icon' => 'unlock',
-                                        'modal' => 'pv-unlock-'.$pvIndex,
-                                        'reason' => 'Motif obligatoire',
-                                    ];
-                                }
-                            } elseif ($isAgent && $isDraft) {
+                            if ($isAdmin || ($isAgent && ! $isArchived)) {
                                 $actions[] = [
-                                    'label' => 'Corriger',
+                                    'label' => $isArchived ? 'Corriger (motif requis)' : 'Corriger',
                                     'icon' => 'pencil',
-                                    'url' => route('agent.pv.edit', $pv['reference']),
+                                    'url' => route($roleKey.'.pv.edit', $pv['reference']),
+                                    'reason' => $isArchived ? 'Motif obligatoire pour un PV archivé' : '',
                                 ];
-                                $actions[] = [
-                                    'label' => 'Archiver',
-                                    'icon' => 'archive',
-                                    'modal' => 'pv-archive-'.$pvIndex,
-                                ];
-                            } elseif ($isArchived && $isAgent) {
+                            } elseif ($isAgent && $isArchived) {
                                 $emptyMessage = "PV archivé : contactez l'administrateur pour une correction";
-                            }
-
-                            if ($emptyMessage === '' && $isArchived) {
+                            } else {
                                 $emptyMessage = 'Consultation seule';
                             }
                         @endphp
@@ -135,8 +102,8 @@
         </div>
 
         <div class="admin-pagination">
-            <span>{{ count($pvs) }} PV affichés sur {{ $totalPvs ?? count(config('ui-demo.pvs', [])) }}</span>
-            <span class="admin-muted">Données de démonstration</span>
+            <span>{{ count($pvs) }} PV affichés sur {{ $totalPvs ?? count($pvs) }}</span>
+            <span class="admin-muted">Données de l'application</span>
         </div>
     </div>
 </section>

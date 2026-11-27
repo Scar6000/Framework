@@ -6,23 +6,18 @@
     @php
         $roleKey = $roleKey ?? 'admin';
         $isChef = $roleKey === 'chef';
-        $scopeFilieres = $isChef ? config('ui-roles.roles.chef.profile.filieres', ['IG', 'STAT']) : null;
+        $scopeFilieres = $scopeFilieres ?? ($isChef ? [] : null);
 
         $searchRoute = \Illuminate\Support\Facades\Route::has($roleKey.'.recherche.index')
             ? route($roleKey.'.recherche.index')
             : route('admin.recherche.index');
 
-        $filiereOptions = collect(config('ui-demo.filieres', []))
-            ->when($isChef, fn ($items) => $items->whereIn('code', $scopeFilieres))
+        $filiereOptions = collect($filieres ?? [])
+            ->when($isChef, fn ($items) => $items->whereIn('code', $scopeFilieres ?? []))
             ->values();
 
-        $pvResults = collect(config('ui-demo.pvs', []))
-            ->when($isChef, fn ($items) => $items->whereIn('filiere', $scopeFilieres))
-            ->values();
-
-        $etudiantResults = collect(config('ui-demo.etudiants', []))
-            ->when($isChef, fn ($items) => $items->whereIn('filiere', $scopeFilieres))
-            ->values();
+        $pvResults = collect($pvResults ?? []);
+        $etudiantResults = collect($etudiantResults ?? []);
 
         $decisionTones = [
             'Admis' => 'blue',
@@ -31,9 +26,7 @@
             'Exclu' => 'red',
         ];
 
-        $decisionOptions = collect(config('ui-demo.resultats', []))
-            ->pluck('decision')
-            ->unique()
+        $decisionOptions = collect($decisionOptions ?? ['Admis', 'Rattrapage', 'Ajourné', 'Exclu', 'Absent'])
             ->values();
 
         $filterKeys = ['annee', 'filiere', 'niveau', 'session', 'decision'];
@@ -73,7 +66,7 @@
             @endforeach
 
             @if ($isChef)
-                <input type="hidden" name="departement" value="Informatique et Statistique">
+                <input type="hidden" name="departement" value="{{ $profile['department'] ?? '' }}">
             @endif
 
             <div class="admin-search-hero__field">
@@ -105,14 +98,14 @@
         <form class="admin-filters" method="GET" action="{{ $searchRoute }}">
             <input type="hidden" name="q" value="{{ old('q', request('q', '')) }}">
             @if ($isChef)
-                <input type="hidden" name="departement" value="Informatique et Statistique">
+                <input type="hidden" name="departement" value="{{ $profile['department'] ?? '' }}">
             @endif
 
             <label class="admin-field admin-field--grow" for="shared-recherche-annee">
                 <span class="admin-field__label">Année académique</span>
                 <select class="admin-select" id="shared-recherche-annee" name="annee">
                     <option value="" @selected(old('annee', request('annee', '')) === '')>Toutes les années</option>
-                    @foreach (config('ui-demo.annees', []) as $annee)
+                    @foreach ($annees ?? [] as $annee)
                         <option value="{{ $annee }}" @selected($selectedOption('annee', $annee))>{{ $annee }}</option>
                     @endforeach
                 </select>
@@ -138,7 +131,7 @@
                 <span class="admin-field__label">Niveau</span>
                 <select class="admin-select" id="shared-recherche-niveau" name="niveau">
                     <option value="" @selected(old('niveau', request('niveau', '')) === '')>Tous les niveaux</option>
-                    @foreach (config('ui-demo.niveaux', []) as $niveau)
+                    @foreach ($niveaux ?? [] as $niveau)
                         <option value="{{ $niveau }}" @selected($selectedOption('niveau', $niveau))>{{ $niveau }}</option>
                     @endforeach
                 </select>
@@ -151,7 +144,7 @@
                 <span class="admin-field__label">Session</span>
                 <select class="admin-select" id="shared-recherche-session" name="session">
                     <option value="" @selected(old('session', request('session', '')) === '')>Toutes les sessions</option>
-                    @foreach (config('ui-demo.sessions', []) as $session)
+                    @foreach ($sessions ?? ['Normale', 'Rattrapage'] as $session)
                         <option value="{{ $session }}" @selected($selectedOption('session', $session))>{{ $session }}</option>
                     @endforeach
                 </select>
@@ -177,7 +170,7 @@
                 <div class="admin-field admin-field--grow">
                     <span class="admin-field__label">Département (périmètre fixe)</span>
                     <x-ui.badge tone="neutral">
-                        <x-admin.icon name="lock" /> Département : Informatique et Statistique
+                        <x-admin.icon name="lock" /> Département : {{ $profile['department'] ?? '' }}
                     </x-ui.badge>
                 </div>
             @endif
@@ -249,7 +242,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($pvResults as $pv)
+                            @forelse ($pvResults as $pv)
                                 @php
                                     $drawerId = 'apercu-'.preg_replace('/[^A-Za-z0-9_-]/', '', $pv['reference']);
                                 @endphp
@@ -270,7 +263,11 @@
                                         </div>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="admin-empty">Aucun procès-verbal ne correspond aux critères.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -299,9 +296,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($etudiantResults as $etudiant)
+                            @forelse ($etudiantResults as $etudiant)
                                 @php
-                                    $decision = $etudiant['parcours'][0]['decision'] ?? 'Admis';
+                                    $decision = $etudiant['parcours'][0]['decision'] ?? '';
                                 @endphp
                                 <tr class="is-hoverable-row">
                                     <td class="admin-muted">{{ $etudiant['matricule'] }}</td>
@@ -327,7 +324,11 @@
                                         />
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="admin-empty">Aucun étudiant ne correspond aux critères.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -347,7 +348,7 @@
             <x-ui.viewer
                 :reference="$pv['reference']"
                 :pages="$pv['pages'] ?? 4"
-                :can-download="! $isChef"
+                :can-download="false"
             />
         </x-ui.drawer>
     @endforeach

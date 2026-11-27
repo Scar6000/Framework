@@ -6,13 +6,15 @@
     @php
         $roleKey = $roleKey ?? 'admin';
         $isChef = $roleKey === 'chef';
-        $scopeFilieres = $isChef ? config('ui-roles.roles.chef.profile.filieres', ['IG', 'STAT']) : null;
+        $scopeFilieres = $scopeFilieres ?? ($isChef ? [] : null);
 
         $searchRoute = \Illuminate\Support\Facades\Route::has($roleKey.'.recherche.index')
             ? route($roleKey.'.recherche.index')
             : route('admin.recherche.index');
 
-        $filiereOptions = collect(config('ui-demo.filieres', []));
+        $filiereOptions = collect($filieres ?? [])
+            ->when($isChef, fn ($items) => $items->whereIn('code', $scopeFilieres ?? []))
+            ->values();
 
         $filiereLabel = function (string $code) use ($filiereOptions): string {
             $filiere = $filiereOptions->firstWhere('code', $code);
@@ -20,20 +22,14 @@
             return is_array($filiere) ? $filiere['label'] : $code;
         };
 
-        $etudiants = collect(config('ui-demo.etudiants', []));
-        $etudiant = $etudiants->firstWhere('matricule', $matricule ?? '')
-            ?? $etudiants->first()
-            ?? [
-                'matricule' => $matricule ?? '',
-                'nom' => 'Étudiant non trouvé',
-                'filiere' => '',
-                'niveau' => '',
-                'parcours' => [],
-            ];
-
-        $parcours = collect($etudiant['parcours'] ?? [])
-            ->when($isChef, fn ($items) => $items->whereIn('filiere', $scopeFilieres))
-            ->values();
+        $etudiant = $etudiant ?? [
+            'matricule' => '',
+            'nom' => 'Étudiant non trouvé',
+            'filiere' => '',
+            'niveau' => '',
+            'parcours' => [],
+        ];
+        $parcours = collect($etudiant['parcours'] ?? []);
 
         $decisionTones = [
             'Admis' => 'blue',
@@ -42,32 +38,23 @@
             'Exclu' => 'red',
         ];
 
-        $pvs = collect(config('ui-demo.pvs', []))
-            ->when($isChef, fn ($items) => $items->whereIn('filiere', $scopeFilieres))
-            ->keyBy('reference');
-
-        foreach ($parcours as $etape) {
-            if (! $pvs->has($etape['reference'])) {
-                $pvs->put($etape['reference'], [
-                    'reference' => $etape['reference'],
-                    'annee' => $etape['annee'],
-                    'filiere' => $etape['filiere'],
-                    'niveau' => $etape['niveau'],
-                    'session' => $etape['session'],
-                    'date' => null,
-                    'pages' => 4,
-                    'status' => 'Archivé',
-                ]);
-            }
-        }
-
-        $studentPvReferences = $parcours->pluck('reference')->unique()->values();
-        $studentPvs = $pvs->filter(fn ($pv, string $reference) => $studentPvReferences->contains($reference))->values();
+        $studentPvs = $parcours
+            ->filter(fn (array $etape): bool => ($etape['reference'] ?? '') !== '')
+            ->map(fn (array $etape): array => [
+                'reference' => $etape['reference'],
+                'annee' => $etape['annee'] ?? '',
+                'filiere' => $etape['filiere'] ?? '',
+                'niveau' => $etape['niveau'] ?? '',
+                'session' => $etape['session'] ?? '',
+                'pages' => 5,
+            ])
+            ->keyBy('reference')
+            ->values();
 
         $initialsOf = function (string $name): string {
             $words = preg_split('/\s+/', trim($name)) ?: [];
 
-            return mb_strtoupper(mb_substr($words[0] ?? '', 0, 1).mb_substr($words[1] ?? '', 0, 1));
+            return mb_strtoupper(mb_substr($words[0] ?? '', 0, 1).mb_substr(end($words) ?: '', 0, 1));
         };
 
         $drawerIdFor = function (string $reference): string {
@@ -136,19 +123,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($parcours as $index => $etape)
+                        @forelse ($parcours as $index => $etape)
                             @php
-                                $anneeDebut = (int) substr($etape['annee'], 0, 4);
-                                $anneePrecedente = ($anneeDebut - 1).'-'.$anneeDebut;
+                                $anneeDebut = (int) substr((string) ($etape['annee'] ?? ''), 0, 4);
+                                $anneePrecedente = $anneeDebut > 0 ? ($anneeDebut - 1).'-'.$anneeDebut : '';
                                 $etapeSuivante = $parcours->get($index + 1);
-                                $redoublement = $etapeSuivante !== null
+                                $redoublement = $anneePrecedente !== ''
+                                    && $etapeSuivante !== null
                                     && $etape['niveau'] === $etapeSuivante['niveau']
                                     && $etapeSuivante['annee'] === $anneePrecedente;
-                                $decision = $etape['decision'];
+                                $decision = $etape['decision'] ?? '';
                             @endphp
                             <tr class="is-hoverable-row">
                                 <td>{{ $etape['annee'] }}</td>
-                                <td>{{ $filiereLabel($etape['filiere']) }}</td>
+                                <td>{{ $filiereLabel($etape['filiere'] ?? '') }}</td>
                                 <td>
                                     {{ $etape['niveau'] }}
                                     @if ($redoublement)
@@ -157,20 +145,28 @@
                                 </td>
                                 <td>{{ $etape['session'] }}</td>
                                 <td>{{ $etape['moyenne'] }} / 20</td>
-                                <td>{{ $etape['credits'] }}</td>
+                                <td>{{ $etape['credits'] ?? '—' }}</td>
                                 <td>
                                     <x-ui.badge :label="$decision" :tone="$decisionTones[$decision] ?? 'neutral'" />
                                 </td>
                                 <td>
-                                    <span class="admin-table__primary">
-                                        <x-ui.pv-reference :reference="$etape['reference']" />
-                                    </span>
-                                    <div data-drawer-open data-target="{{ $drawerIdFor($etape['reference']) }}">
-                                        <x-ui.table-actions :reference="$etape['reference']" />
-                                    </div>
+                                    @if (($etape['reference'] ?? '') !== '')
+                                        <span class="admin-table__primary">
+                                            <x-ui.pv-reference :reference="$etape['reference']" />
+                                        </span>
+                                        <div data-drawer-open data-target="{{ $drawerIdFor($etape['reference']) }}">
+                                            <x-ui.table-actions :reference="$etape['reference']" />
+                                        </div>
+                                    @else
+                                        <span class="admin-muted">—</span>
+                                    @endif
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="8" class="admin-empty">Aucun résultat enregistré pour cet étudiant.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -223,8 +219,8 @@
         >
             <x-ui.viewer
                 :reference="$pv['reference']"
-                :pages="$pv['pages'] ?? 4"
-                :can-download="! $isChef"
+                :pages="$pv['pages'] ?? 5"
+                :can-download="false"
             />
         </x-ui.drawer>
     @endforeach

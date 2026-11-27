@@ -7,66 +7,60 @@
         $roleKey = $roleKey ?? 'admin';
         $canManage = in_array($roleKey, ['admin', 'agent'], true);
         $isChef = $roleKey === 'chef';
-        $scopeFilieres = $isChef ? config('ui-roles.roles.chef.profile.filieres', ['IG', 'STAT']) : null;
-        $filterKeys = ['annee', 'filiere', 'niveau', 'session', 'statut', 'reference'];
-        $filters = [];
-
-        foreach ($filterKeys as $filterKey) {
-            $filters[$filterKey] = trim((string) old($filterKey, request($filterKey, '')));
-        }
-
-        $pvFilterMap = [
-            'annee' => 'annee',
-            'filiere' => 'filiere',
-            'niveau' => 'niveau',
-            'session' => 'session',
-            'statut' => 'status',
+        $scopeFilieres = $scopeFilieres ?? null;
+        $pvs = collect($pvs ?? []);
+        $filters = [
+            'annee' => trim((string) request('annee', '')),
+            'filiere' => trim((string) request('filiere', '')),
+            'niveau' => trim((string) request('niveau', '')),
+            'session' => trim((string) request('session', '')),
+            'statut' => trim((string) request('statut', '')),
+            'reference' => trim((string) request('reference', '')),
         ];
-
-        $filiereOptions = collect(config('ui-demo.filieres', []))
-            ->when($isChef, fn ($items) => $items->whereIn('code', $scopeFilieres))
+        $annees = $annees ?? [];
+        $niveaux = $niveaux ?? [];
+        $sessions = $sessions ?? ['Normale', 'Rattrapage'];
+        $filiereOptions = collect($filieres ?? [])
+            ->when($isChef && is_array($scopeFilieres), fn ($items) => $items->whereIn('code', $scopeFilieres))
             ->values();
-
-        $allPvs = collect(config('ui-demo.pvs', []))
-            ->when($isChef, fn ($items) => $items->whereIn('filiere', $scopeFilieres))
-            ->values();
-
-        $pvs = $allPvs
-            ->filter(function (array $pv) use ($filters, $pvFilterMap): bool {
-                foreach ($pvFilterMap as $filterKey => $pvKey) {
-                    if ($filters[$filterKey] !== '' && ($pv[$pvKey] ?? '') !== $filters[$filterKey]) {
-                        return false;
-                    }
-                }
-
-                if ($filters['reference'] !== '' && mb_stripos($pv['reference'], $filters['reference']) === false) {
-                    return false;
-                }
-
-                return true;
-            })
-            ->values()
-            ->all();
-
         $indexRoute = \Illuminate\Support\Facades\Route::has($roleKey.'.pv.index')
             ? route($roleKey.'.pv.index')
             : route('admin.pv.index');
+        $drafts = $pvs->where('status', 'Brouillon')->count();
+        $archives = $pvs->where('status', 'Archivé')->count();
+        $scopeLabel = is_array($scopeFilieres) && $scopeFilieres !== []
+            ? implode(', ', $scopeFilieres)
+            : 'votre département';
     @endphp
 
     <x-admin.page-header
         title="Registre des PV"
-        subtitle="Consultez, corrigez et archivez les procès-verbaux de délibération enregistrés."
+        subtitle="Consultez et gérez les procès-verbaux annuels de délibération enregistrés dans l'application."
         :breadcrumb="['Accueil', 'PV de délibération', 'Registre des PV']"
     >
         <x-slot:actions>
             @if ($canManage)
-                <x-ui.btn :href="route($roleKey.'.pv.create')" variant="primary" icon="plus">Nouveau PV</x-ui.btn>
+                <x-ui.btn variant="primary" icon="plus" data-modal-open data-target="#pv-choice-modal">Nouveau PV</x-ui.btn>
                 <x-ui.btn :href="route($roleKey.'.pv.import')" variant="secondary" icon="upload">Import en masse</x-ui.btn>
             @else
-                <x-ui.badge label="Lecture seule · IG et STAT" tone="neutral" />
+                <x-ui.badge label="Lecture seule · {{ $scopeLabel }}" tone="neutral" />
             @endif
         </x-slot:actions>
     </x-admin.page-header>
+
+    @if (session('success'))
+        <div class="ui-notice ui-notice--success" role="status">
+            <x-admin.icon name="check" />
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="ui-notice" role="alert">
+            <x-admin.icon name="alert" />
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
 
     <section class="admin-section" aria-labelledby="shared-pv-filters-title">
         <div class="admin-section__head">
@@ -81,7 +75,7 @@
                 <label class="admin-field__label" for="shared-pv-annee">Année académique</label>
                 <select class="admin-select" id="shared-pv-annee" name="annee">
                     <option value="">Toutes les années</option>
-                    @foreach (config('ui-demo.annees', []) as $annee)
+                    @foreach ($annees as $annee)
                         <option value="{{ $annee }}" @selected($filters['annee'] === $annee)>{{ $annee }}</option>
                     @endforeach
                 </select>
@@ -103,7 +97,7 @@
                 <label class="admin-field__label" for="shared-pv-niveau">Niveau</label>
                 <select class="admin-select" id="shared-pv-niveau" name="niveau">
                     <option value="">Tous</option>
-                    @foreach (config('ui-demo.niveaux', []) as $niveau)
+                    @foreach ($niveaux as $niveau)
                         <option value="{{ $niveau }}" @selected($filters['niveau'] === $niveau)>{{ $niveau }}</option>
                     @endforeach
                 </select>
@@ -113,8 +107,8 @@
                 <label class="admin-field__label" for="shared-pv-session">Session</label>
                 <select class="admin-select" id="shared-pv-session" name="session">
                     <option value="">Toutes</option>
-                    @foreach (config('ui-demo.sessions', []) as $session)
-                        <option value="{{ $session }}" @selected($filters['session'] === $session)>{{ $session }}</option>
+                    @foreach ($sessions as $session)
+                        <option value="{{ $session }}" @selected(strtolower($filters['session']) === strtolower($session))>{{ $session }}</option>
                     @endforeach
                 </select>
             </div>
@@ -142,11 +136,45 @@
         </form>
     </section>
 
+    <section class="admin-section" aria-labelledby="shared-pv-summary-title">
+        <div class="admin-section__head">
+            <div>
+                <h2 class="admin-section__title" id="shared-pv-summary-title">Aperçu du registre</h2>
+                <p class="admin-section__hint">Volumes du périmètre accessible à votre profil.</p>
+            </div>
+        </div>
+
+        <div class="admin-summary-grid">
+            <article class="admin-summary-card">
+                <span class="admin-summary-card__icon"><x-admin.icon name="pv" /></span>
+                <div>
+                    <span class="admin-summary-card__value">{{ $pvs->count() }}</span>
+                    <span class="admin-summary-card__label">PV accessibles</span>
+                </div>
+            </article>
+            <article class="admin-summary-card">
+                <span class="admin-summary-card__icon"><x-admin.icon name="clock" /></span>
+                <div>
+                    <span class="admin-summary-card__value">{{ $drafts }}</span>
+                    <span class="admin-summary-card__label">En brouillon</span>
+                </div>
+            </article>
+            <article class="admin-summary-card">
+                <span class="admin-summary-card__icon"><x-admin.icon name="archive" /></span>
+                <div>
+                    <span class="admin-summary-card__value">{{ $archives }}</span>
+                    <span class="admin-summary-card__label">Archivés</span>
+                </div>
+            </article>
+        </div>
+    </section>
+
     @include('shared.pv._pv-table', [
-        'pvs' => $pvs,
+        'pvs' => $pvs->all(),
         'roleKey' => $roleKey,
         'indexRoute' => $indexRoute,
-        'totalPvs' => $allPvs->count(),
+        'totalPvs' => $totalPvs ?? $pvs->count(),
+        'filieres' => $filiereOptions->all(),
     ])
 
     @foreach ($pvs as $pvIndex => $pv)
@@ -154,15 +182,7 @@
             'pv' => $pv,
             'pvIndex' => $pvIndex,
             'roleKey' => $roleKey,
-        ])
-    @endforeach
-
-    @foreach ($pvs as $pvIndex => $pv)
-        @include('shared.pv._pv-modals', [
-            'pv' => $pv,
-            'pvIndex' => $pvIndex,
-            'roleKey' => $roleKey,
-            'indexRoute' => $indexRoute,
+            'filieres' => $filiereOptions->all(),
         ])
     @endforeach
 @endsection

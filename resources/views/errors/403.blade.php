@@ -29,7 +29,7 @@
         </svg>
 
         <h1 id="acces-refuse-title">Accès non autorisé</h1>
-        <p>Votre profil ne permet pas d'accéder à cette page.</p>
+        <p>{{ $deniedMessage ?? "Votre profil ne permet pas d'accéder à cette page." }}</p>
 
         <x-ui.btn :href="$dashboardRoute" variant="primary" icon="arrow-right" label="Retour au tableau de bord" />
     </section>

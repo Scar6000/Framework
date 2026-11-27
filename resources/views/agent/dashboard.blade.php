@@ -5,9 +5,17 @@
 @section('content')
     @php
         $roleKey = $roleKey ?? 'agent';
-        $profile = config('ui-roles.roles.agent.profile');
-
-        $filieres = collect(config('ui-demo.filieres', []))->keyBy('code');
+        $profile = $profile ?? config('ui-roles.roles.agent.profile');
+        $filieres = collect($filieres ?? config('ui-demo.filieres', []))->keyBy('code');
+        $pvs = collect($pvs ?? []);
+        $drafts = collect($drafts ?? $pvs->where('status', 'Brouillon')->values());
+        $stats = $stats ?? [
+            'archives' => $pvs->where('status', 'Archivé')->count(),
+            'brouillons' => $drafts->count(),
+            'a_numeriser' => 0,
+            'etudiants' => 0,
+        ];
+        $lastRecords = $pvs->take(5);
 
         $filiereLabel = function (string $code) use ($filieres): string {
             $filiere = $filieres->get($code);
@@ -15,22 +23,14 @@
             return is_array($filiere) ? $filiere['label'] : $code;
         };
 
-        $pvs = collect(config('ui-demo.pvs', []))
-            ->where('enregistre_par', $profile['name'])
-            ->sortByDesc('date_enregistrement')
-            ->values();
-
-        $drafts = $pvs->where('status', 'Brouillon')->values();
-        $lastRecords = $pvs->take(5);
-
-        $activeYear = old('annee', request('annee', '2025-2026'));
+        $activeYear = $currentAnnee ?? old('annee', request('annee', date('Y').'-'.(date('Y') + 1)));
         $activeSession = old('session', request('session', 'Normale'));
 
         $statCards = [
-            ['label' => 'PV archivés', 'value' => '96', 'meta' => 'Année 2025-2026', 'icon' => 'archive', 'tone' => 'blue'],
-            ['label' => 'Brouillons à compléter', 'value' => '6', 'meta' => 'Action requise', 'icon' => 'clock', 'tone' => 'gold'],
-            ['label' => 'PV à numériser', 'value' => '14', 'meta' => 'Plan 2025-2026', 'icon' => 'file', 'tone' => 'blue'],
-            ['label' => 'Étudiants référencés', 'value' => '6 428', 'meta' => 'Toutes filières', 'icon' => 'users', 'tone' => 'blue'],
+            ['label' => 'PV archivés', 'value' => (string) $stats['archives'], 'meta' => 'Registre accessible', 'icon' => 'archive', 'tone' => 'blue'],
+            ['label' => 'Brouillons à compléter', 'value' => (string) $stats['brouillons'], 'meta' => 'Action requise', 'icon' => 'clock', 'tone' => 'gold'],
+            ['label' => 'PV à numériser', 'value' => (string) $stats['a_numeriser'], 'meta' => 'Promotions attendues', 'icon' => 'file', 'tone' => 'blue'],
+            ['label' => 'Étudiants référencés', 'value' => number_format($stats['etudiants'], 0, ',', ' '), 'meta' => 'Toutes filières', 'icon' => 'users', 'tone' => 'blue'],
         ];
 
         $drawerIdFor = function (string $reference): string {
@@ -49,10 +49,10 @@
 
         <div class="admin-banner__content">
             <span class="admin-banner__eyebrow"><x-admin.icon name="pv" /> Espace agent de scolarité</span>
-            <h1 class="admin-banner__title" id="agent-banner-title">Bonjour, Mme Dossou</h1>
-            <p class="admin-banner__text">Il reste 14 PV à numériser pour l'année 2025-2026 et 6 brouillons à compléter.</p>
+            <h1 class="admin-banner__title" id="agent-banner-title">Bonjour, {{ $profile['name'] }}</h1>
+            <p class="admin-banner__text">{{ $stats['a_numeriser'] }} PV restent à numériser et {{ $stats['brouillons'] }} brouillons sont à compléter.</p>
             <x-ui.btn
-                :href="route('agent.pv.index', ['statut' => 'brouillon'])"
+                :href="route('agent.pv.index', ['statut' => 'Brouillon'])"
                 variant="compact"
                 class="admin-button--gold"
                 icon="arrow-right"
@@ -69,7 +69,7 @@
         <div class="admin-section__head">
             <div>
                 <h2 class="admin-section__title" id="agent-indicators-title">Indicateurs clés</h2>
-                <p class="admin-section__hint">Situation de l'enregistrement des PV pour l'année 2025-2026.</p>
+                <p class="admin-section__hint">Situation de l'enregistrement des PV pour l'année {{ $activeYear }}.</p>
             </div>
             <div class="admin-section__actions">
                 <x-ui.badge label="Espace agent" tone="dark" />
@@ -96,7 +96,7 @@
         <div class="admin-section__head">
             <div>
                 <h2 class="admin-section__title" id="agent-records-title">Mes derniers enregistrements</h2>
-                <p class="admin-section__hint">PV enregistrés par {{ $profile['name'] }}, toutes sessions confondues.</p>
+                <p class="admin-section__hint">Derniers PV enregistrés dans le service, toutes sessions confondues.</p>
             </div>
             <div class="admin-section__actions">
                 <x-ui.btn :href="route('agent.pv.index')" variant="compact" class="admin-button--secondary" icon="arrow-right" label="Ouvrir le registre" />
@@ -170,8 +170,8 @@
         >
             <x-ui.viewer
                 :reference="$pv['reference']"
-                :pages="$pv['pages'] ?? 4"
-                :can-download="true"
+                :pages="$pv['pages'] ?? 5"
+                :can-download="false"
             />
         </x-ui.drawer>
     @endforeach
@@ -198,13 +198,13 @@
         <div class="admin-year-picker">
             <label class="sr-only" for="agent-annee" hidden>Année académique</label>
             <select class="admin-select" id="agent-annee" name="annee" aria-label="Année académique">
-                @foreach (config('ui-demo.annees', []) as $annee)
+                @foreach ($annees ?? config('ui-demo.annees', []) as $annee)
                     <option value="{{ $annee }}" @selected($annee === $activeYear)>{{ $annee }}</option>
                 @endforeach
             </select>
         </div>
         <div role="group" aria-label="Sessions de l'année {{ $activeYear }}">
-            @foreach (config('ui-demo.sessions', []) as $session)
+            @foreach ($sessions ?? config('ui-demo.sessions', []) as $session)
                 @php
                     $isActive = $session === $activeSession;
                 @endphp
@@ -223,7 +223,7 @@
     <section class="admin-widget" aria-labelledby="agent-scan-widget-title">
         <div class="admin-widget__head">
             <h2 class="admin-widget__title" id="agent-scan-widget-title">PV à numériser</h2>
-            <span class="admin-tiny admin-muted">14</span>
+            <span class="admin-tiny admin-muted">{{ $stats['a_numeriser'] }}</span>
         </div>
 
         @foreach ($drafts as $pv)
@@ -233,11 +233,11 @@
                     <span class="admin-missing-card__meta">{{ $pv['annee'] }} · Session {{ $pv['session'] }}</span>
                 </span>
                 <x-ui.btn
-                    :href="route('agent.pv.create')"
+                    :href="route('agent.pv.edit', $pv['reference'])"
                     variant="compact"
-                    icon="plus"
-                    label="Enregistrer"
-                    aria-label="Enregistrer le PV {{ $filiereLabel($pv['filiere']) }} {{ $pv['niveau'] }}"
+                    icon="pencil"
+                    label="Compléter"
+                    aria-label="Compléter le PV {{ $pv['reference'] }}"
                 />
             </div>
         @endforeach
@@ -246,7 +246,7 @@
     <section class="admin-widget" aria-labelledby="agent-draft-widget-title">
         <div class="admin-widget__head">
             <h2 class="admin-widget__title" id="agent-draft-widget-title">Brouillons à compléter</h2>
-            <span class="admin-tiny admin-muted">6</span>
+            <span class="admin-tiny admin-muted">{{ $stats['brouillons'] }}</span>
         </div>
 
         @foreach ($drafts as $pv)

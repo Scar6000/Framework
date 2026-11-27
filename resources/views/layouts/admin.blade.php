@@ -11,10 +11,10 @@
 </head>
 <body class="admin-body" style="--admin-background-image: url('{{ asset('image/bk.jpeg') }}');">
     @php
-        // TODO: déterminer ce rôle depuis l'utilisateur authentifié lors du branchement du back-end.
+        // Le rôle et le profil viennent de l'utilisateur authentifié (AppServiceProvider).
         $roleKey = $roleKey ?? 'admin';
         $roleConfig = config('ui-roles.roles.'.$roleKey, config('ui-roles.roles.admin'));
-        $profile = $roleConfig['profile'];
+        $profile = $profile ?? $roleConfig['profile'];
         $hasAside = \Illuminate\Support\Facades\View::hasSection('aside');
     @endphp
 
@@ -52,6 +52,10 @@
             @endif
         </div>
     </div>
+
+    @if ($roleKey !== 'chef')
+        @include('components.ui.pv-choice-modal')
+    @endif
 
     <script src="{{ asset('js/ui-motion.js') }}" defer></script>
     <script src="{{ asset('js/admin.js') }}" defer></script>

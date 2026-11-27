@@ -29,6 +29,12 @@ class Promotion extends Model
         return $this->belongsTo(AnneeAcademique::class, 'annee_academique_id');
     }
 
+    /** Alias utilisé par les contrôleurs et les vues PV. */
+    public function annee(): BelongsTo
+    {
+        return $this->belongsTo(AnneeAcademique::class, 'annee_academique_id');
+    }
+
     public function filiere(): BelongsTo
     {
         return $this->belongsTo(Filiere::class);

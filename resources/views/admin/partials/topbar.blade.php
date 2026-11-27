@@ -46,9 +46,15 @@
                         @php
                             $itemUrl = route($item['route'], $item['query'] ?? []);
                         @endphp
-                        <a class="admin-dropdown__item" href="{{ $itemUrl }}">
-                            <x-admin.icon name="{{ $item['icon'] }}" /> {{ $item['label'] }}
-                        </a>
+                        @if (! empty($item['modal']))
+                            <button class="admin-dropdown__item" type="button" data-modal-open data-target="#pv-choice-modal">
+                                <x-admin.icon name="{{ $item['icon'] }}" /> {{ $item['label'] }}
+                            </button>
+                        @else
+                            <a class="admin-dropdown__item" href="{{ $itemUrl }}">
+                                <x-admin.icon name="{{ $item['icon'] }}" /> {{ $item['label'] }}
+                            </a>
+                        @endif
                     @endforeach
                 </div>
             </div>

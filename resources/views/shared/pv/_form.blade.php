@@ -3,32 +3,53 @@
     $mode = $mode ?? 'create';
     $isEdit = $mode === 'edit';
     $roleKey = $roleKey ?? 'admin';
-    $pv = $pv ?? [];
-    $reference = $reference ?? ($pv['reference'] ?? 'PV-2026-IG-L3-0XX');
-    $isArchived = $isArchived ?? (($pv['status'] ?? '') === 'Archivé');
+    $pv = $pv ?? null;
+    $filiere = $filiere ?? null;
+    $promotion = $promotion ?? null;
+    $reference = $reference ?? ($pv?->reference ?? '');
+    $isArchived = $isArchived ?? false;
     $isAdmin = $roleKey === 'admin';
     $canEdit = $canEdit ?? ! ($isArchived && ! $isAdmin);
-    $annees = config('ui-demo.annees', []);
-    $filieres = collect(config('ui-demo.filieres', []));
-    $niveaux = config('ui-demo.niveaux', []);
-    $sessions = config('ui-demo.sessions', []);
-    $pageCount = max(1, (int) ($pv['pages'] ?? 5));
-    $membres = old('membres', $pv['membres'] ?? []);
-    $defaultSession = old('session', $pv['session'] ?? 'Normale');
+    $sessions = $sessions ?? ['Normale', 'Rattrapage'];
+    $annees = $annees ?? [];
+    $pageCount = 5;
+
+    $anneeLabel = $promotion?->annee->libelle ?? ($annees[0] ?? '');
+    $filiereLabel = $filiere?->nom ?? ($promotion?->filiere?->nom ?? '');
+    $filiereCode = $filiere?->code ?? ($promotion?->filiere?->code ?? '');
+    $niveauCode = $promotion?->semestre?->niveau?->code ?? '';
+    $filiereId = $filiere?->id ?? $promotion?->filiere_id;
+    $promotionId = $promotion?->id;
+
+    $defaultSession = old('session', $isEdit && $pv?->session === 'rattrapage' ? 'Rattrapage' : 'Normale');
+    $membres = old('membres_jury', $pv?->membres_jury ?? []);
+    $dateValue = old('date_deliberation', $pv?->date_deliberation?->toDateString() ?? '');
+    $presidentValue = old('president_jury', $pv?->president_jury ?? '');
+
+    $indexRoute = \Illuminate\Support\Facades\Route::has($roleKey.'.pv.index')
+        ? route($roleKey.'.pv.index')
+        : route('admin.pv.index');
     $formAction = $isEdit
-        ? route($roleKey.'.pv.edit', $reference)
-        : route($roleKey.'.pv.index');
-    $fieldValue = function (string $key, string $default = '') use ($pv): string {
-        return (string) old($key, $pv[$key] ?? $default);
-    };
+        ? route($roleKey.'.pv.update', $reference)
+        : route($roleKey.'.pv.store');
 @endphp
 
-<form method="POST" action="{{ $formAction }}" data-pv-form novalidate>
+<form method="POST" action="{{ $formAction }}" enctype="multipart/form-data" data-pv-form novalidate>
     @csrf
     @if ($isEdit)
         @method('PUT')
     @endif
-    <input type="hidden" name="reference" value="{{ $reference }}">
+    <input type="hidden" name="filiere_id" value="{{ $filiereId }}">
+    <input type="hidden" name="promotion_id" value="{{ $promotionId }}">
+
+    <div class="ui-notice">
+        <x-admin.icon name="info" />
+        <span>
+            PV annuel — Filière <strong>{{ $filiereLabel }} ({{ $filiereCode }})</strong>,
+            niveau <strong>{{ $niveauCode }}</strong>, année <strong>{{ $anneeLabel }}</strong>.
+            Référence attribuée : <x-ui.pv-reference :reference="$reference" />.
+        </span>
+    </div>
 
     <div class="ui-pv-layout">
         <div class="ui-form-stack">
@@ -45,7 +66,8 @@
                         <span class="ui-dropzone__hint">ou choisissez un fichier sur votre poste</span>
                         <button class="admin-button admin-button--secondary admin-button--small" type="button"
                                 data-pv-file-pick>Parcourir les fichiers</button>
-                        <input class="sr-only" type="file" id="pv-scan" name="scan" accept=".pdf,.jpg,.jpeg,.png"
+                        <input class="sr-only" type="file" id="pv-scan" name="fichier" accept=".pdf,.jpg,.jpeg,.png"
+                               @if (! $isEdit) required @endif
                                data-pv-file-input aria-label="Scan du procès-verbal">
                     </div>
 
@@ -57,7 +79,11 @@
                                 aria-label="Retirer le fichier sélectionné"><x-admin.icon name="close" /></button>
                     </div>
 
-                    @error('scan')
+                    <p class="admin-tiny admin-muted" data-pv-file-caption>
+                        {{ $isEdit ? 'Scan enregistré : '.$reference.'.pdf. Laissez vide pour conserver le fichier actuel.' : 'Le scan est obligatoire pour enregistrer le PV.' }}
+                    </p>
+
+                    @error('fichier')
                         <p class="admin-field__error"><x-admin.icon name="alert" /> {{ $message }}</p>
                     @enderror
                 </div>
@@ -70,53 +96,6 @@
                 </div>
                 <div class="admin-card__body">
                     <div class="admin-form-grid">
-                        <div class="admin-field{{ $errors->has('annee') ? ' admin-field--invalid' : '' }}">
-                            <label class="admin-field__label" for="pv-annee">Année académique</label>
-                            <select class="admin-select" id="pv-annee" name="annee" required data-pv-required
-                                    aria-invalid="@error('annee') true @else false @enderror">
-                                <option value="">Choisir une année</option>
-                                @foreach ($annees as $annee)
-                                    <option value="{{ $annee }}" @selected($fieldValue('annee') === $annee)>{{ $annee }}</option>
-                                @endforeach
-                            </select>
-                            <p class="admin-field__error" data-pv-error hidden>Ce champ est obligatoire.</p>
-                            @error('annee')
-                                <p class="admin-field__error"><x-admin.icon name="alert" /> {{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="admin-field{{ $errors->has('filiere') ? ' admin-field--invalid' : '' }}">
-                            <label class="admin-field__label" for="pv-filiere">Filière</label>
-                            <select class="admin-select" id="pv-filiere" name="filiere" required data-pv-required
-                                    aria-invalid="@error('filiere') true @else false @enderror">
-                                <option value="">Choisir une filière</option>
-                                @foreach ($filieres as $filiere)
-                                    <option value="{{ $filiere['code'] }}" @selected($fieldValue('filiere') === $filiere['code'])>
-                                        {{ $filiere['label'] }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <p class="admin-field__error" data-pv-error hidden>Ce champ est obligatoire.</p>
-                            @error('filiere')
-                                <p class="admin-field__error"><x-admin.icon name="alert" /> {{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="admin-field{{ $errors->has('niveau') ? ' admin-field--invalid' : '' }}">
-                            <label class="admin-field__label" for="pv-niveau">Niveau</label>
-                            <select class="admin-select" id="pv-niveau" name="niveau" required data-pv-required
-                                    aria-invalid="@error('niveau') true @else false @enderror">
-                                <option value="">Choisir un niveau</option>
-                                @foreach ($niveaux as $niveau)
-                                    <option value="{{ $niveau }}" @selected($fieldValue('niveau') === $niveau)>{{ $niveau }}</option>
-                                @endforeach
-                            </select>
-                            <p class="admin-field__error" data-pv-error hidden>Ce champ est obligatoire.</p>
-                            @error('niveau')
-                                <p class="admin-field__error"><x-admin.icon name="alert" /> {{ $message }}</p>
-                            @enderror
-                        </div>
-
                         <div class="admin-field">
                             <span class="admin-field__label" id="pv-session-label">Session</span>
                             <div class="ui-segmented" role="group" aria-labelledby="pv-session-label">
@@ -126,37 +105,37 @@
                                 @endforeach
                             </div>
                             <input type="hidden" name="session" value="{{ $defaultSession }}" data-pv-session-input>
+                            @error('session')
+                                <p class="admin-field__error"><x-admin.icon name="alert" /> {{ $message }}</p>
+                            @enderror
                         </div>
 
-                        <div class="admin-field{{ $errors->has('date') ? ' admin-field--invalid' : '' }}">
+                        <div class="admin-field{{ $errors->has('date_deliberation') ? ' admin-field--invalid' : '' }}">
                             <label class="admin-field__label" for="pv-date">Date de délibération</label>
-                            <input class="admin-input" id="pv-date" name="date" type="date" required data-pv-required
-                                   value="{{ $fieldValue('date') }}" aria-invalid="@error('date') true @else false @enderror">
-                            <p class="admin-field__error" data-pv-error hidden>Ce champ est obligatoire.</p>
-                            @error('date')
+                            <input class="admin-input" id="pv-date" name="date_deliberation" type="date"
+                                   value="{{ $dateValue }}" aria-invalid="@error('date_deliberation') true @else false @enderror">
+                            @error('date_deliberation')
                                 <p class="admin-field__error"><x-admin.icon name="alert" /> {{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div class="admin-field{{ $errors->has('president') ? ' admin-field--invalid' : '' }}">
+                        <div class="admin-field{{ $errors->has('president_jury') ? ' admin-field--invalid' : '' }} admin-form-grid__full">
                             <label class="admin-field__label" for="pv-president">Président du jury</label>
-                            <input class="admin-input" id="pv-president" name="president" type="text"
-                                   placeholder="Nom et titre du président" required data-pv-required
-                                   value="{{ $fieldValue('president') }}"
-                                   aria-invalid="@error('president') true @else false @enderror">
-                            <p class="admin-field__error" data-pv-error hidden>Ce champ est obligatoire.</p>
-                            @error('president')
+                            <input class="admin-input" id="pv-president" name="president_jury" type="text"
+                                   placeholder="Nom et titre du président" value="{{ $presidentValue }}"
+                                   aria-invalid="@error('president_jury') true @else false @enderror">
+                            @error('president_jury')
                                 <p class="admin-field__error"><x-admin.icon name="alert" /> {{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div class="admin-field admin-form-grid__full">
+                        <div class="admin-field admin-form-grid__full{{ $errors->has('membres_jury') ? ' admin-field--invalid' : '' }}">
                             <span class="admin-field__label" id="pv-membres-label">Membres du jury</span>
                             <div class="ui-tag-list" data-pv-tags aria-labelledby="pv-membres-label">
                                 @foreach ($membres as $membre)
                                     <span class="ui-tag">
-                                        {{ $membre }}
-                                        <input type="hidden" name="membres[]" value="{{ $membre }}">
+                                        <span>{{ $membre }}</span>
+                                        <input type="hidden" name="membres_jury[]" value="{{ $membre }}">
                                         <button class="ui-tag__remove" type="button" data-pv-tag-remove
                                                 aria-label="Retirer {{ $membre }}"><x-admin.icon name="close" /></button>
                                     </span>
@@ -167,10 +146,14 @@
                                        placeholder="Ajouter un membre du jury" aria-label="Nouveau membre du jury">
                                 <x-ui.btn variant="secondary" icon="plus" data-pv-tag-add>Ajouter</x-ui.btn>
                             </div>
+                            <p class="admin-tiny admin-muted">Au moins un membre est requis pour archiver le PV.</p>
+                            @error('membres_jury')
+                                <p class="admin-field__error"><x-admin.icon name="alert" /> {{ $message }}</p>
+                            @enderror
                             <template data-pv-tag-template>
                                 <span class="ui-tag">
                                     <span data-pv-tag-label></span>
-                                    <input type="hidden" name="membres[]" value="" data-pv-tag-value>
+                                    <input type="hidden" name="membres_jury[]" value="" data-pv-tag-value>
                                     <button class="ui-tag__remove" type="button" data-pv-tag-remove aria-label="Retirer le membre">
                                         <x-admin.icon name="close" />
                                     </button>
@@ -179,39 +162,21 @@
                         </div>
                     </div>
 
-                    <div class="ui-reference-line">
-                        <x-ui.pv-reference :reference="$reference" />
-                        <span class="admin-tiny admin-muted">attribuée à l'enregistrement</span>
-                    </div>
-
                     @if ($isEdit && $isArchived)
-                        @if ($isAdmin)
-                            <div class="ui-notice">
-                                <x-admin.icon name="info" />
-                                <span>PV archivé : toute modification est tracée.</span>
-                            </div>
-                            <div class="admin-field{{ $errors->has('motif') ? ' admin-field--invalid' : '' }}">
-                                <label class="admin-field__label" for="pv-motif">Motif de la modification (obligatoire)</label>
-                                <textarea class="admin-textarea" id="pv-motif" name="motif" required data-pv-required
-                                          placeholder="Indiquez la donnée à rectifier et la valeur attendue."
-                                          aria-invalid="@error('motif') true @else false @enderror">{{ old('motif') }}</textarea>
-                                <p class="admin-field__error" data-pv-error hidden>Le motif est obligatoire pour un PV archivé.</p>
-                                @error('motif')
-                                    <p class="admin-field__error"><x-admin.icon name="alert" /> {{ $message }}</p>
-                                @enderror
-                            </div>
-                        @else
-                            <div class="ui-notice">
-                                <x-admin.icon name="lock" />
-                                <span>PV archivé : pour corriger, contactez l'administrateur.</span>
-                            </div>
-                        @endif
+                        <div class="ui-notice">
+                            <x-admin.icon name="info" />
+                            <span>PV archivé : toute modification est tracée dans le journal d'audit.</span>
+                        </div>
+                        <div class="admin-field admin-form-grid__full{{ $errors->has('motif') ? ' admin-field--invalid' : '' }}">
+                            <label class="admin-field__label" for="pv-motif">Motif de la modification (obligatoire)</label>
+                            <textarea class="admin-textarea" id="pv-motif" name="motif"
+                                      placeholder="Indiquez la donnée à rectifier et la valeur attendue."
+                                      aria-invalid="@error('motif') true @else false @enderror">{{ old('motif') }}</textarea>
+                            @error('motif')
+                                <p class="admin-field__error"><x-admin.icon name="alert" /> {{ $message }}</p>
+                            @enderror
+                        </div>
                     @endif
-
-                    <div class="ui-notice ui-notice--success" data-pv-success role="status" hidden>
-                        <x-admin.icon name="check" />
-                        <span data-pv-success-text></span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -223,26 +188,24 @@
                     <span class="admin-tiny admin-muted">{{ $pageCount }} pages</span>
                 </div>
                 <div class="admin-card__body ui-form-stack">
-                    <x-ui.viewer :reference="$reference" :pages="$pageCount"
-                                 :can-download="$isEdit && in_array($roleKey, ['admin', 'agent'], true)" />
-                    <p class="admin-tiny admin-muted" data-pv-file-caption>
-                        {{ $isEdit ? 'Scan enregistré : '.$reference.'.pdf' : 'Le scan associé apparaîtra ici après sélection.' }}
-                    </p>
+                    <x-ui.viewer :reference="$reference" :pages="$pageCount" :can-download="false" />
                 </div>
             </div>
         </div>
     </div>
 
     <div class="ui-sticky-actions">
-        <x-ui.btn :href="route($roleKey.'.pv.index')" variant="ghost">Annuler</x-ui.btn>
-        <x-ui.btn variant="secondary" type="submit" data-pv-submit="draft" :disabled="! $canEdit"
-                  aria-disabled="{{ $canEdit ? 'false' : 'true' }}">
-            <span data-pv-submit-label>Enregistrer comme brouillon</span>
-        </x-ui.btn>
-        <x-ui.btn variant="primary" type="submit" data-pv-submit="archive" :disabled="! $canEdit"
-                  aria-disabled="{{ $canEdit ? 'false' : 'true' }}">
-            <span data-pv-submit-label>Enregistrer et archiver</span>
-        </x-ui.btn>
+        <x-ui.btn :href="$indexRoute" variant="ghost">Annuler</x-ui.btn>
+        @if ($canEdit)
+            <x-ui.btn variant="secondary" type="submit" name="action" value="draft" data-pv-submit="draft">
+                <span data-pv-submit-label>Enregistrer comme brouillon</span>
+            </x-ui.btn>
+            <x-ui.btn variant="primary" type="submit" name="action" value="archive" data-pv-submit="archive">
+                <span data-pv-submit-label>Enregistrer et archiver</span>
+            </x-ui.btn>
+        @else
+            <x-ui.btn variant="secondary" type="button" disabled>Modification réservée à l'administrateur</x-ui.btn>
+        @endif
     </div>
 </form>
 
@@ -263,8 +226,6 @@
             var fileSize = form.querySelector('[data-pv-file-size]');
             var fileRemove = form.querySelector('[data-pv-file-remove]');
             var fileCaption = form.querySelector('[data-pv-file-caption]');
-            var success = form.querySelector('[data-pv-success]');
-            var successText = form.querySelector('[data-pv-success-text]');
             var tagList = form.querySelector('[data-pv-tags]');
             var tagTemplate = form.querySelector('[data-pv-tag-template]');
             var tagInput = form.querySelector('[data-pv-tag-input]');
@@ -406,62 +367,20 @@
             });
 
             form.addEventListener('submit', function (event) {
-                event.preventDefault();
+                var submitter = event.submitter || form.querySelector('[data-pv-submit]:not([disabled])');
 
-                var submitter = event.submitter || form.querySelector('[data-pv-submit]');
-                var valid = true;
-                var firstInvalid = null;
-
-                form.querySelectorAll('[data-pv-required]').forEach(function (field) {
-                    var wrapper = field.closest('.admin-field');
-                    var empty = field.value.trim() === '';
-
-                    if (empty) {
-                        valid = false;
-
-                        if (wrapper) {
-                            wrapper.classList.add('admin-field--invalid');
-                            var error = wrapper.querySelector('[data-pv-error]');
-
-                            if (error) {
-                                error.hidden = false;
-                            }
-                        }
-
-                        field.setAttribute('aria-invalid', 'true');
-
-                        if (!firstInvalid) {
-                            firstInvalid = field;
-                        }
-                    } else {
-                        field.setAttribute('aria-invalid', 'false');
-
-                        if (wrapper) {
-                            wrapper.classList.remove('admin-field--invalid');
-                            var resolved = wrapper.querySelector('[data-pv-error]');
-
-                            if (resolved) {
-                                resolved.hidden = true;
-                            }
-                        }
-                    }
-                });
-
-                if (!valid) {
-                    success.hidden = true;
-
-                    if (firstInvalid) {
-                        firstInvalid.focus();
-                    }
-
+                if (!submitter || submitter.disabled) {
+                    event.preventDefault();
                     return;
                 }
 
                 var label = submitter.querySelector('[data-pv-submit-label]');
 
-                if (submitter.disabled) {
-                    return;
-                }
+                form.querySelectorAll('[data-pv-submit]').forEach(function (button) {
+                    if (button !== submitter) {
+                        button.disabled = true;
+                    }
+                });
 
                 submitter.disabled = true;
                 submitter.setAttribute('aria-busy', 'true');
@@ -469,23 +388,21 @@
                 if (label) {
                     label.textContent = 'Enregistrement en cours…';
                 }
+            });
 
-                window.setTimeout(function () {
-                    submitter.disabled = false;
-                    submitter.removeAttribute('aria-busy');
+            window.addEventListener('pageshow', function () {
+                form.querySelectorAll('[data-pv-submit]').forEach(function (button) {
+                    button.disabled = false;
+                    button.removeAttribute('aria-busy');
+                    var label = button.querySelector('[data-pv-submit-label]');
 
                     if (label) {
-                        label.textContent = submitter.getAttribute('data-pv-submit') === 'archive'
+                        label.textContent = button.getAttribute('data-pv-submit') === 'archive'
                             ? 'Enregistrer et archiver'
                             : 'Enregistrer comme brouillon';
                     }
-
-                    successText.textContent = submitter.getAttribute('data-pv-submit') === 'archive'
-                        ? 'PV enregistré et archivé (simulation).'
-                        : 'PV enregistré comme brouillon (simulation).';
-                    success.hidden = false;
-                }, 650);
+                });
             });
         })();
     </script>
-@endpushonce
+@endpushOnce

@@ -5,45 +5,27 @@
 @section('content')
     @php
         $today = \Illuminate\Support\Carbon::now()->locale('fr')->translatedFormat('l d F Y');
+        $profile = $profile ?? config('ui-roles.roles.admin.profile');
+        $pvs = collect($pvs ?? []);
+        $stats = $stats ?? [
+            'archives' => $pvs->where('status', 'Archivé')->count(),
+            'brouillons' => $pvs->where('status', 'Brouillon')->count(),
+            'a_numeriser' => 0,
+            'etudiants' => 0,
+        ];
+        $filieres = $filieres ?? [];
+        $journalRows = $journalRows ?? [];
+        $latestPv = $latestPv ?? [];
+        $missingPv = $missingPv ?? [];
+        $chartSeries = $chartSeries ?? [];
+        $chartYears = $chartYears ?? ['2023-2024', '2024-2025', '2025-2026'];
+        $activeYear = $currentAnnee ?? ($chartYears[count($chartYears) - 1] ?? date('Y').'-'.(date('Y') + 1));
 
         $statCards = [
-            ['label' => 'PV archivés', 'value' => '96', 'meta' => 'Année 2025-2026', 'icon' => 'archive', 'tone' => 'blue'],
-            ['label' => 'PV en brouillon', 'value' => '25', 'meta' => 'En attente de classement', 'icon' => 'pv', 'tone' => 'blue'],
-            ['label' => 'PV attendus', 'value' => '14', 'meta' => 'Sur 240 prévus', 'icon' => 'clock', 'tone' => 'gold'],
-            ['label' => 'Étudiants référencés', 'value' => '6 428', 'meta' => '+ 312 cette année', 'icon' => 'users', 'tone' => 'blue'],
-            ['label' => 'Taux de réussite global', 'value' => '74,6 %', 'meta' => 'Toutes sessions', 'icon' => 'chart', 'tone' => 'gold'],
-        ];
-
-        $filieres = [
-            ['name' => 'Informatique de gestion', 'short' => 'IG', 'done' => 34, 'expected' => 36],
-            ['name' => 'Banque et finance', 'short' => 'BF', 'done' => 41, 'expected' => 44],
-            ['name' => 'Comptabilité contrôle et audit', 'short' => 'CCA', 'done' => 38, 'expected' => 42],
-            ['name' => 'Gestion des ressources humaines', 'short' => 'GRH', 'done' => 29, 'expected' => 34],
-            ['name' => 'Marketing', 'short' => 'MK', 'done' => 36, 'expected' => 40],
-            ['name' => 'Statistique', 'short' => 'ST', 'done' => 34, 'expected' => 44],
-        ];
-
-        $journalRows = [
-            ['initials' => 'JA', 'name' => 'Dr Jean Théophile Agadamè', 'role' => 'Administrateur', 'action' => 'Modification', 'object' => 'PV', 'reference' => 'PV-2026-IG-L3-014', 'date' => '24/11/2026 — 09 h 42', 'type' => 'Modification', 'tone' => 'gold', 'highlight' => true],
-            ['initials' => 'AK', 'name' => 'Aminata Koné', 'role' => 'Agent de scolarité', 'action' => 'Enregistrement', 'object' => 'PV', 'reference' => 'PV-2026-BF-L2-008', 'date' => '24/11/2026 — 08 h 57', 'type' => 'Modification', 'tone' => 'gold', 'highlight' => false],
-            ['initials' => 'MD', 'name' => 'Mamadou Diop', 'role' => 'Chef de département', 'action' => 'Archivage', 'object' => 'PV', 'reference' => 'PV-2026-CCA-L3-021', 'date' => '23/11/2026 — 16 h 14', 'type' => 'Archivage', 'tone' => 'dark', 'highlight' => false],
-            ['initials' => 'SN', 'name' => 'Sophie N' . "\u{00E9}" . 'nesson', 'role' => 'Direction', 'action' => 'Consultation', 'object' => 'Fiche étudiant / ENE-2023-1048', 'date' => '23/11/2026 — 14 h 03', 'type' => 'Consultation', 'tone' => 'slate', 'highlight' => false],
-            ['initials' => 'YB', 'name' => 'Yaya Bathily', 'role' => 'Agent de scolarité', 'action' => 'Import de résultats', 'object' => 'Promotion / Marketing L3', 'date' => '23/11/2026 — 11 h 26', 'type' => 'Modification', 'tone' => 'gold', 'highlight' => false],
-            ['initials' => 'FL', 'name' => 'Fatou Ly', 'role' => 'Administrateur', 'action' => 'Export', 'object' => 'Statistiques comparatives 2025-2026', 'date' => '22/11/2026 — 17 h 38', 'type' => 'Export', 'tone' => 'dark', 'highlight' => false],
-        ];
-
-        $latestPv = [
-            ['reference' => 'PV-2026-IG-L3-014', 'promotion' => 'Informatique de gestion, L3', 'annee' => '2025-2026', 'session' => 'Normale', 'status' => 'Brouillon', 'tone' => 'slate'],
-            ['reference' => 'PV-2026-BF-L2-008', 'promotion' => 'Banque et finance, L2', 'annee' => '2025-2026', 'session' => 'Normale', 'status' => 'Archivé', 'tone' => 'dark'],
-            ['reference' => 'PV-2026-CCA-L3-021', 'promotion' => 'Comptabilité, L3', 'annee' => '2025-2026', 'session' => 'Rattrapage', 'status' => 'Brouillon', 'tone' => 'slate'],
-            ['reference' => 'PV-2026-GRH-L1-006', 'promotion' => 'Ressources humaines, L1', 'annee' => '2025-2026', 'session' => 'Normale', 'status' => 'Archivé', 'tone' => 'dark'],
-            ['reference' => 'PV-2026-MK-L3-012', 'promotion' => 'Marketing, L3', 'annee' => '2025-2026', 'session' => 'Normale', 'status' => 'Brouillon', 'tone' => 'slate'],
-        ];
-
-        $missingPv = [
-            ['promotion' => 'Comptabilité, L3', 'session' => 'Normale', 'annee' => '2025-2026'],
-            ['promotion' => 'Statistique, L3', 'session' => 'Rattrapage', 'annee' => '2025-2026'],
-            ['promotion' => 'Marketing, L2', 'session' => 'Normale', 'annee' => '2025-2026'],
+            ['label' => 'PV archivés', 'value' => (string) $stats['archives'], 'meta' => 'Registre global', 'icon' => 'archive', 'tone' => 'blue'],
+            ['label' => 'PV en brouillon', 'value' => (string) $stats['brouillons'], 'meta' => 'En attente de classement', 'icon' => 'pv', 'tone' => 'blue'],
+            ['label' => 'PV attendus', 'value' => (string) $stats['a_numeriser'], 'meta' => 'Promotions à numériser', 'icon' => 'clock', 'tone' => 'gold'],
+            ['label' => 'Étudiants référencés', 'value' => number_format($stats['etudiants'], 0, ',', ' '), 'meta' => 'Toutes filières', 'icon' => 'users', 'tone' => 'blue'],
         ];
     @endphp
 
@@ -59,8 +41,8 @@
 
         <div class="admin-banner__content">
             <span class="admin-banner__eyebrow"><x-admin.icon name="spark" /> Espace administrateur</span>
-            <h1 class="admin-banner__title" id="admin-banner-title">Bonjour, Dr Agadamè</h1>
-            <p class="admin-banner__text">Nous sommes le {{ $today }}. Il reste 14 PV à numériser pour l'année 2025-2026 et 3 alertes à examiner.</p>
+            <h1 class="admin-banner__title" id="admin-banner-title">Bonjour, {{ $profile['name'] }}</h1>
+            <p class="admin-banner__text">Nous sommes le {{ $today }}. {{ $stats['a_numeriser'] }} PV restent à numériser et {{ $stats['brouillons'] }} brouillons attendent un classement.</p>
             <x-ui.btn
                 :href="route('admin.plan.index')"
                 variant="compact"
@@ -107,8 +89,8 @@
     <section class="admin-section" aria-labelledby="admin-success-title">
         <div class="admin-section__head">
             <div>
-                <h2 class="admin-section__title" id="admin-success-title">Taux de réussite par filière et par année</h2>
-                <p class="admin-section__hint">Comparaison des sessions normales sur trois années académiques.</p>
+                <h2 class="admin-section__title" id="admin-success-title">PV enregistrés par filière et par année</h2>
+                <p class="admin-section__hint">Comparaison des années académiques, toutes sessions confondues.</p>
             </div>
             <div class="admin-section__actions">
                 <label class="admin-field">
@@ -124,12 +106,12 @@
 
         <div class="admin-card admin-chart">
             <div class="admin-chart__legend" aria-hidden="true">
-                <span class="admin-chart__legend-item"><span class="admin-chart__legend-dot admin-chart__legend-dot--night"></span> 2023-2024</span>
-                <span class="admin-chart__legend-item"><span class="admin-chart__legend-dot admin-chart__legend-dot--blue"></span> 2024-2025</span>
-                <span class="admin-chart__legend-item"><span class="admin-chart__legend-dot admin-chart__legend-dot--gold"></span> 2025-2026</span>
+                @foreach ($chartYears as $yearIndex => $year)
+                    <span class="admin-chart__legend-item"><span class="admin-chart__legend-dot admin-chart__legend-dot--{{ ['night', 'blue', 'gold'][$yearIndex] ?? 'night' }}"></span> {{ $year }}</span>
+                @endforeach
             </div>
 
-            <svg viewBox="0 0 760 260" width="760" height="260" role="img" aria-label="Graphique des taux de réussite par filière et par année">
+            <svg viewBox="0 0 760 260" width="760" height="260" role="img" aria-label="Graphique des PV enregistrés par filière et par année">
                 @foreach ([0, 25, 50, 75, 100] as $tick)
                     @php
                         $y = 210 - $tick * 1.8;
@@ -139,17 +121,14 @@
                 @endforeach
 
                 @php
-                    $series = [
-                        ['name' => 'Informatique de gestion', 'values' => [68, 72, 78]],
-                        ['name' => 'Banque et finance', 'values' => [61, 66, 71]],
-                        ['name' => 'Comptabilité', 'values' => [70, 73, 76]],
-                        ['name' => 'Ressources humaines', 'values' => [55, 62, 67]],
-                        ['name' => 'Marketing', 'values' => [64, 69, 73]],
-                        ['name' => 'Statistique', 'values' => [58, 65, 70]],
-                    ];
+                    $series = $chartSeries;
                     $colors = ['#08236B', '#2F6BFF', '#F5B91E'];
-                    $years = ['2023-2024', '2024-2025', '2025-2026'];
-                    $centers = [106, 216, 326, 436, 546, 656];
+                    $years = $chartYears;
+                    $step = count($series) > 0 ? (int) (620 / count($series)) : 0;
+                    $centers = collect($series)
+                        ->keys()
+                        ->map(fn (int $index): int => 80 + $index * $step + (int) ($step / 2))
+                        ->all();
                 @endphp
 
                 @foreach ($series as $index => $serie)
@@ -158,7 +137,7 @@
                             $x = $centers[$index] - 36 + $barIndex * 27;
                             $height = $value * 1.8;
                             $y = 210 - $height;
-                            $tooltip = $serie['name'].' — '.$years[$barIndex].' : '.$value.' %';
+                            $tooltip = $serie['name'].' — '.$years[$barIndex].' : '.$value.' PV';
                         @endphp
                         <rect class="admin-chart__bar" x="{{ $x }}" y="{{ $y }}" width="22" height="{{ $height }}" rx="4" fill="{{ $colors[$barIndex] }}" data-tooltip="{{ $tooltip }}">
                             <title>{{ $tooltip }}</title>
@@ -286,7 +265,7 @@
             </div>
 
             <div class="admin-pagination">
-                <span>6 entrées affichées sur 248</span>
+                <span>{{ count($journalRows) }} entrées affichées</span>
                 <a class="admin-table__link" href="{{ route('admin.journal.index') }}">Ouvrir le journal complet</a>
             </div>
         </div>
@@ -300,10 +279,10 @@
             @include('admin.partials.notifications', ['menuId' => 'admin-notifications-aside-menu', 'triggerId' => 'admin-notifications-aside-trigger'])
         </div>
         <div class="admin-aside__profile-text">
-            <strong class="admin-aside__profile-name">Dr Jean Théophile Agadamè</strong>
-            <span class="admin-aside__profile-role">Administrateur</span>
+            <strong class="admin-aside__profile-name">{{ $profile['name'] }}</strong>
+            <span class="admin-aside__profile-role">{{ $profile['role'] }}</span>
         </div>
-        <x-admin.avatar initials="JA" size="sm" label="Profil de Dr Jean Théophile Agadamè" />
+        <x-admin.avatar :initials="$profile['initials']" size="sm" label="Profil de {{ $profile['name'] }}" />
     </div>
 
     <section class="admin-widget" aria-labelledby="admin-year-widget-title">
@@ -312,7 +291,7 @@
         </div>
         <div class="admin-year-picker">
             <button class="admin-year-picker__nav" type="button" aria-label="Année précédente"><x-admin.icon name="chevron-left" /></button>
-            <span class="admin-year-picker__value">2025-2026</span>
+            <span class="admin-year-picker__value">{{ $activeYear }}</span>
             <button class="admin-year-picker__nav" type="button" aria-label="Année suivante"><x-admin.icon name="chevron-right" /></button>
         </div>
         <div class="admin-page-header__actions" role="group" aria-label="Sessions de l'année 2025-2026">
@@ -328,20 +307,20 @@
         </div>
 
         <div class="admin-progress-list">
-            @foreach ($filieres as $filere)
+            @foreach ($filieres as $filiere)
                 @php
-                    $percentage = (int) round($filere['done'] / $filere['expected'] * 100);
+                    $percentage = $filiere['expected'] > 0 ? (int) round($filiere['done'] / $filiere['expected'] * 100) : 0;
                 @endphp
                 <div class="admin-progress-item">
                     <div class="admin-progress-item__head">
-                        <span class="admin-progress-item__initials">{{ $filere['short'] }}</span>
+                        <span class="admin-progress-item__initials">{{ $filiere['short'] }}</span>
                         <span class="admin-progress-item__text">
-                            <span class="admin-progress-item__name">{{ $filere['name'] }}</span>
-                            <span class="admin-progress-item__meta">{{ $filere['done'] }} / {{ $filere['expected'] }} PV</span>
+                            <span class="admin-progress-item__name">{{ $filiere['name'] }}</span>
+                            <span class="admin-progress-item__meta">{{ $filiere['done'] }} / {{ $filiere['expected'] }} PV</span>
                         </span>
                         <span class="admin-progress-item__value">{{ $percentage }} %</span>
                     </div>
-                    <x-admin.progress :value="$percentage" :label="'Progression '.$filere['name']" />
+                    <x-admin.progress :value="$percentage" :label="'Progression '.$filiere['name']" />
                 </div>
             @endforeach
         </div>

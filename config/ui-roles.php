@@ -2,19 +2,25 @@
 
 /*
  * Configuration d'affichage des trois profils de l'application.
- * TODO: remplacer la lecture de cette configuration par l'utilisateur authentifié
- * et les autorisations réelles lors du branchement du back-end.
+ * Les profils affichés proviennent de l'utilisateur authentifié (AppServiceProvider) ;
+ * les valeurs ci-dessous ne servent que de repli pour les aperçus sans session.
+ * Les départements sont le jeu de données de test : une table dédiée reste à valider.
  */
 
 return [
+    'departements' => [
+        'Informatique et Statistique' => ['IG', 'STAT'],
+        'Économie et gestion' => ['BF', 'CG'],
+    ],
+
     'roles' => [
         'admin' => [
             'label' => 'Administrateur',
             'profile' => [
-                'name' => 'Dr Jean Théophile Agadamè',
+                'name' => 'Administrateur',
                 'role' => 'Administrateur',
-                'initials' => 'JA',
-                'email' => 'j.agadame@eneam.bj',
+                'initials' => 'AD',
+                'email' => '',
                 'department' => 'Administration générale',
             ],
             'dashboard' => 'admin.dashboard',
@@ -31,7 +37,7 @@ return [
                 ['label' => 'Exports et partages', 'route' => 'admin.exports.index', 'patterns' => ['admin.exports.*'], 'icon' => 'exports'],
             ],
             'addMenu' => [
-                ['label' => 'Nouveau PV', 'route' => 'admin.pv.create', 'icon' => 'file'],
+                ['label' => 'Nouveau PV', 'route' => 'admin.pv.create', 'icon' => 'file', 'modal' => true],
                 ['label' => 'Import en masse de PV', 'route' => 'admin.pv.import', 'icon' => 'upload'],
                 ['label' => 'Nouvel utilisateur', 'route' => 'admin.users.index', 'query' => ['creer' => 1], 'icon' => 'users'],
                 ['label' => 'Nouvelle année académique', 'route' => 'admin.referentiels.index', 'query' => ['onglet' => 'annees'], 'icon' => 'calendar'],
@@ -41,10 +47,10 @@ return [
         'agent' => [
             'label' => 'Agent de scolarité',
             'profile' => [
-                'name' => 'Marcelle Dossou',
+                'name' => 'Agent de scolarité',
                 'role' => 'Agent de scolarité',
-                'initials' => 'MD',
-                'email' => 'm.dossou@eneam.bj',
+                'initials' => 'AS',
+                'email' => '',
                 'department' => 'Service des examens',
             ],
             'dashboard' => 'agent.dashboard',
@@ -52,12 +58,12 @@ return [
             'sidebar' => [
                 ['label' => 'Tableau de bord', 'route' => 'agent.dashboard', 'patterns' => ['agent.dashboard'], 'icon' => 'dashboard'],
                 ['label' => 'Registre des PV', 'route' => 'agent.pv.index', 'patterns' => ['agent.pv.index'], 'icon' => 'pv'],
-                ['label' => 'Nouveau PV', 'route' => 'agent.pv.create', 'patterns' => ['agent.pv.create'], 'icon' => 'file'],
+                ['label' => 'Nouveau PV', 'route' => 'agent.pv.create', 'patterns' => ['agent.pv.create'], 'icon' => 'file', 'modal' => true],
                 ['label' => 'Import en masse de PV', 'route' => 'agent.pv.import', 'patterns' => ['agent.pv.import'], 'icon' => 'upload'],
                 ['label' => 'Recherche', 'route' => 'agent.recherche.index', 'patterns' => ['agent.recherche.*', 'agent.etudiants.*'], 'icon' => 'search'],
             ],
             'addMenu' => [
-                ['label' => 'Nouveau PV', 'route' => 'agent.pv.create', 'icon' => 'file'],
+                ['label' => 'Nouveau PV', 'route' => 'agent.pv.create', 'icon' => 'file', 'modal' => true],
                 ['label' => 'Import en masse de PV', 'route' => 'agent.pv.import', 'icon' => 'upload'],
                 ['label' => 'Importer des résultats', 'route' => 'agent.pv.index', 'query' => ['resultats' => 1], 'icon' => 'layers'],
             ],
@@ -65,10 +71,10 @@ return [
         'chef' => [
             'label' => 'Chef de département',
             'profile' => [
-                'name' => 'Basile Hounton',
+                'name' => 'Chef de département',
                 'role' => 'Chef de département',
-                'initials' => 'BH',
-                'email' => 'b.hounton@eneam.bj',
+                'initials' => 'CD',
+                'email' => '',
                 'department' => 'Informatique et Statistique',
                 'filieres' => ['IG', 'STAT'],
             ],

@@ -14,16 +14,24 @@
 
             @foreach ($navigation as $item)
                 @php
-                    $isActive = collect($item['patterns'])->contains(fn (string $pattern) => request()->routeIs($pattern));
+                    $isActive = collect($item['patterns'] ?? [])->contains(fn (string $pattern) => request()->routeIs($pattern));
                     $itemUrl = route($item['route']);
+                    $opensModal = ! empty($item['modal']);
                 @endphp
 
-                <a class="admin-nav__link{{ $isActive ? ' is-active' : '' }}"
-                   href="{{ $itemUrl }}"
-                   @if ($isActive) aria-current="page" @endif>
-                    <span class="admin-nav__icon"><x-admin.icon name="{{ $item['icon'] }}" /></span>
-                    <span class="admin-nav__text">{{ $item['label'] }}</span>
-                </a>
+                @if ($opensModal)
+                    <button class="admin-nav__link" type="button" data-modal-open data-target="#pv-choice-modal">
+                        <span class="admin-nav__icon"><x-admin.icon name="{{ $item['icon'] }}" /></span>
+                        <span class="admin-nav__text">{{ $item['label'] }}</span>
+                    </button>
+                @else
+                    <a class="admin-nav__link{{ $isActive ? ' is-active' : '' }}"
+                       href="{{ $itemUrl }}"
+                       @if ($isActive) aria-current="page" @endif>
+                        <span class="admin-nav__icon"><x-admin.icon name="{{ $item['icon'] }}" /></span>
+                        <span class="admin-nav__text">{{ $item['label'] }}</span>
+                    </a>
+                @endif
             @endforeach
         </nav>
 
