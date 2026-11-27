@@ -25,8 +25,6 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        // Contrainte d'unicité du chef de filière : syntaxe MySQL uniquement.
-        // SQLite ne prend pas en charge les colonnes générées dans un ALTER TABLE.
         if (DB::getDriverName() === 'mysql') {
             DB::statement("
                 ALTER TABLE users
@@ -37,6 +35,11 @@ return new class extends Migration
                     END
                 ) STORED,
                 ADD UNIQUE INDEX users_chef_filiere_unique_idx (chef_filiere_unique)
+            ");
+        } else {
+            DB::statement("
+                CREATE UNIQUE INDEX users_chef_filiere_unique_idx ON users (filiere_id)
+                WHERE role = 'chef' AND is_active = 1 AND deleted_at IS NULL
             ");
         }
 

@@ -2,15 +2,19 @@
 
 namespace Database\Seeders;
 
+use App\Services\ActivityLogger;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        $this->call(TestAccountsSeeder::class);
+        ActivityLogger::$actif = false; // pas de bruit dans le journal pendant le seed
+
+        $this->call([
+            ReferentielEtAdminSeeder::class,
+        ]);
+
+        ActivityLogger::$actif = true;
     }
 }

@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Niveau extends Model
 {
-    protected $fillable = [
-        'code',
-        'libelle',
-        'ordre',
-    ];
+    use Auditable;
+
+    protected $table = 'niveaux';
+
+    protected $fillable = ['code', 'libelle', 'ordre'];
 
     public function semestres(): HasMany
     {

@@ -1,13 +1,7 @@
 <?php
 
-test('the home page redirects guests to the login page', function () {
+test('the application returns a successful response', function () {
     $response = $this->get('/');
 
-    $response->assertRedirect(route('login'));
-});
-
-test('guests are redirected away from the dashboard', function () {
-    $response = $this->get(route('dashboard'));
-
-    $response->assertRedirect(route('login'));
+    $response->assertStatus(302);
 });

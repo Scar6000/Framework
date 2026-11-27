@@ -2,251 +2,185 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Decision;
+use App\Enums\SessionPv;
+use App\Enums\StatutPv;
+use App\Http\Controllers\Concerns\RendersView;
 use App\Http\Requests\StorePvRequest;
 use App\Http\Requests\UpdatePvRequest;
-use App\Models\ActivityLog;
-use App\Models\Filiere;
+use App\Models\AnneeAcademique;
 use App\Models\Promotion;
 use App\Models\Pv;
-use App\Models\User;
-use App\Support\PvPresentation;
-use Illuminate\Http\RedirectResponse;
+use App\Services\ActivityLogger;
+use App\Services\PvSearchService;
+use App\Support\Referentiels;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\View\View;
 
 class PvController extends Controller
 {
-    public function index(Request $request): View
+    use RendersView;
+
+    public function index(Request $request, PvSearchService $recherche)
     {
         Gate::authorize('viewAny', Pv::class);
 
-        /** @var User $user */
-        $user = $request->user();
+        $pvs = $recherche->query($request->user(), $request->only(PvSearchService::FILTRES))
+            ->paginate(15)->withQueryString();
 
-        $query = Pv::query()
-            ->visiblePour($user)
-            ->with(['promotion.filiere', 'promotion.annee', 'promotion.semestre.niveau', 'createur'])
-            ->when($request->filled('annee'), fn ($query) => $query->whereHas(
-                'promotion.annee',
-                fn ($annee) => $annee->where('libelle', (string) $request->string('annee'))
-            ))
-            ->when($request->filled('filiere'), fn ($query) => $query->whereHas(
-                'promotion.filiere',
-                fn ($filiere) => $filiere->where('code', (string) $request->string('filiere'))
-            ))
-            ->when($request->filled('niveau'), fn ($query) => $query->whereHas(
-                'promotion.semestre.niveau',
-                fn ($niveau) => $niveau->where('code', (string) $request->string('niveau'))
-            ))
-            ->when($request->filled('session'), fn ($query) => $query->where(
-                'session',
-                strtolower((string) $request->input('session'))
-            ))
-            ->when($request->filled('statut'), fn ($query) => $query->where(
-                'statut',
-                $request->string('statut') === 'Archivé' ? 'archive' : 'brouillon'
-            ))
-            ->when($request->filled('reference'), fn ($query) => $query->where(
-                'reference',
-                'like',
-                '%'.(string) $request->string('reference').'%'
-            ));
-
-        $pvs = $query->latest('date_deliberation')->get()->map(fn (Pv $pv): array => PvPresentation::toArray($pv));
-
-        return view('shared.pv.index', [
+        return $this->render('pv.index', [
             'pvs' => $pvs,
-            'totalPvs' => $pvs->count(),
+            'filtres' => $request->only(PvSearchService::FILTRES),
+            'references' => Referentiels::pourFiltres($request->user()),
+            'statuts' => StatutPv::cases(),
+            'sessions' => SessionPv::cases(),
         ]);
     }
 
-    public function create(Request $request): View|RedirectResponse
+    public function create(Request $request)
     {
         Gate::authorize('create', Pv::class);
 
-        $selection = $this->selection($request);
-
-        if ($selection === null) {
-            return redirect()->to(route($request->user()->roleKey().'.pv.index').'#pv-choice-modal')
-                ->with('error', 'Choisissez d’abord une filière et une promotion.');
-        }
-
-        [$filiere, $promotion] = $selection;
-
-        return view('pv.form', [
-            'mode' => 'create',
+        return $this->render('pv.form', [
             'pv' => null,
-            'filiere' => $filiere,
-            'promotion' => $promotion,
-            'reference' => $this->genererReference($promotion, $promotion->semestre->niveau->code),
-            'isArchived' => false,
-            'canEdit' => true,
+            'promotions' => $this->promotionsSaisissables($request),
+            'sessions' => SessionPv::cases(),
         ]);
     }
 
-    public function store(StorePvRequest $request): RedirectResponse
+    public function store(StorePvRequest $request)
     {
         Gate::authorize('create', Pv::class);
 
-        /** @var Promotion $promotion */
-        $promotion = Promotion::with(['filiere', 'annee', 'semestre.niveau'])
-            ->findOrFail($request->integer('promotion_id'));
-        $niveau = $promotion->semestre->niveau->code;
-        $archiver = $request->input('action') === 'archive';
+        $promotion = Promotion::with(['filiere', 'annee', 'semestre'])->findOrFail($request->input('promotion_id'));
+        $session = SessionPv::from($request->input('session'));
 
         $pv = Pv::create([
-            'reference' => $this->genererReference($promotion, $niveau),
+            'reference' => $request->input('reference') ?: $this->genererReference($promotion, $session),
             'promotion_id' => $promotion->id,
-            'session' => strtolower((string) $request->input('session')),
+            'session' => $session,
             'date_deliberation' => $request->input('date_deliberation'),
             'president_jury' => $request->input('president_jury'),
-            'membres_jury' => $request->input('membres_jury', []),
-            'statut' => $archiver ? 'archive' : 'brouillon',
+            'membres_jury' => $request->input('membres_jury'),
+            'statut' => StatutPv::Brouillon,
             'created_by' => $request->user()->id,
         ] + $this->stockerFichier($request->file('fichier'), $promotion));
 
-        $this->journal('creation', $pv, 'Enregistrement du PV et du scan associé');
-
-        if ($archiver) {
-            $this->journal('archivage', $pv, 'PV enregistré définitivement');
-        }
-
-        return redirect()->route($request->user()->roleKey().'.pv.index')
-            ->with('success', $archiver ? 'PV enregistré et archivé.' : 'PV enregistré comme brouillon.');
+        return $this->done('pv.show', ['pv' => $pv], 'PV créé en brouillon. Ajoutez maintenant les résultats.', ['pv' => $pv], 201);
     }
 
-    public function edit(Request $request, Pv $pv): View
+    public function show(Request $request, Pv $pv)
     {
-        /** @var User $user */
+        Gate::authorize('view', $pv);
         $user = $request->user();
 
-        if ($user->isAgent() && $pv->statut === 'archive') {
-            abort(403, 'PV archivé : contactez l\'administrateur pour une correction.');
-        }
+        $pv->load(['promotion.filiere', 'promotion.annee', 'promotion.semestre.niveau', 'createur', 'validateur']);
 
-        Gate::authorize('update', $pv);
+        $lignes = $pv->lignes()->with('etudiant')
+            ->join('etudiants', 'etudiants.id', '=', 'lignes_resultats.etudiant_id')
+            ->orderBy('etudiants.nom')->orderBy('etudiants.prenoms')
+            ->select('lignes_resultats.*')
+            ->paginate(100)->withQueryString();
 
-        $pv->load(['promotion.filiere', 'promotion.annee', 'promotion.semestre.niveau']);
-        $promotion = $pv->promotion;
-        $isArchived = $pv->statut === 'archive';
+        ActivityLogger::log('consultation', $pv);
 
-        return view('pv.form', [
-            'mode' => 'edit',
+        return $this->render('pv.show', [
             'pv' => $pv,
-            'filiere' => $promotion->filiere,
-            'promotion' => $promotion,
-            'reference' => $pv->reference,
-            'isArchived' => $isArchived,
-            'canEdit' => true,
+            'lignes' => $lignes,
+            'decisions' => Decision::cases(),
+            // Boutons à afficher côté front
+            'permissions' => [
+                'modifier' => $user->can('update', $pv),
+                'gerer_resultats' => $user->can('gererResultats', $pv),
+                'soumettre' => $user->can('soumettre', $pv),
+                'valider' => $user->can('valider', $pv),
+                'rejeter' => $user->can('rejeter', $pv),
+                'archiver' => $user->can('archiver', $pv),
+                'supprimer' => $user->can('delete', $pv),
+                'partager' => $user->can('partager', $pv),
+                'telecharger' => (bool) config('pv.telechargement_autorise'),
+            ],
         ]);
     }
 
-    public function update(UpdatePvRequest $request, Pv $pv): RedirectResponse
+    public function edit(Pv $pv)
     {
         Gate::authorize('update', $pv);
 
-        $data = $request->safe()->only(['date_deliberation', 'president_jury', 'membres_jury']);
-        $ancienFichier = null;
+        return $this->render('pv.form', ['pv' => $pv->load('promotion'), 'promotions' => [], 'sessions' => SessionPv::cases()]);
+    }
 
-        if ($request->hasFile('fichier')) {
-            $ancienFichier = $pv->getRawOriginal('fichier_path');
-            $data += $this->stockerFichier($request->file('fichier'), $pv->promotion);
+    public function update(UpdatePvRequest $request, Pv $pv)
+    {
+        Gate::authorize('update', $pv);
+
+        $data = $request->safe()->only(['reference', 'date_deliberation', 'president_jury', 'membres_jury']);
+        if (blank($data['reference'] ?? null)) {
+            unset($data['reference']);
         }
 
-        $archiver = $request->input('action') === 'archive' && $pv->statut === 'brouillon';
-
-        if ($archiver) {
-            $data['statut'] = 'archive';
+        $ancienFichier = null;
+        if ($request->hasFile('fichier')) {
+            $ancienFichier = $pv->getRawOriginal('fichier_path');
+            $data += $this->stockerFichier($request->file('fichier'), $pv->promotion()->with(['filiere', 'annee'])->first());
         }
 
         $pv->update($data);
 
-        if ($ancienFichier !== null) {
-            Storage::disk('public')->delete($ancienFichier);
+        if ($ancienFichier) {
+            Storage::disk(config('pv.disk'))->delete($ancienFichier);
         }
 
-        $motif = trim((string) $request->input('motif', ''));
-        $description = $motif !== '' ? 'Motif : '.$motif : 'Correction des informations du PV';
-        $this->journal('modification', $pv, $description);
-
-        if ($archiver) {
-            $this->journal('archivage', $pv, 'PV archivé après correction');
-        }
-
-        return redirect()->route($request->user()->roleKey().'.pv.index')
-            ->with('success', $archiver ? 'PV corrigé et archivé.' : 'PV mis à jour.');
+        return $this->done('pv.show', ['pv' => $pv], 'PV mis à jour.', ['pv' => $pv->fresh()]);
     }
 
-    public function import(): View
+    /** Suppression douce (admin) : le fichier est conservé. */
+    public function destroy(Pv $pv)
     {
-        Gate::authorize('create', Pv::class);
+        Gate::authorize('delete', $pv);
+        $pv->delete();
 
-        return view('shared.pv.import');
+        return $this->done('pv.index', [], 'PV supprimé.');
     }
 
-    /**
-     * @return array{Filiere, Promotion}|null
-     */
-    private function selection(Request $request): ?array
+    /** Promotions sur lesquelles on peut créer un PV : année en cours, attendues, sans PV de cette session. */
+    private function promotionsSaisissables(Request $request)
     {
-        $filiereId = $request->integer('filiere_id');
-        $promotionId = $request->integer('promotion_id');
+        $annee = AnneeAcademique::enCours();
 
-        if ($filiereId === 0 || $promotionId === 0) {
-            return null;
+        return Promotion::with(['filiere', 'semestre.niveau', 'annee'])
+            ->when($annee, fn ($q) => $q->where('annee_academique_id', $annee->id))
+            ->where('est_attendue', true)
+            ->orderBy('filiere_id')->orderBy('semestre_id')
+            ->get();
+    }
+
+    private function genererReference(Promotion $p, SessionPv $session): string
+    {
+        $base = collect(['PV', $p->filiere->code, $p->annee->libelle, $p->semestre->code, strtoupper($session->value)])
+            ->filter()->implode('-');
+
+        $ref = $base;
+        $i = 2;
+        while (Pv::withTrashed()->where('reference', $ref)->exists()) {
+            $ref = $base.'-'.$i++;
         }
 
-        $filiere = Filiere::find($filiereId);
-        $promotion = Promotion::with(['filiere', 'annee', 'semestre.niveau'])->find($promotionId);
-
-        if ($filiere === null || $promotion === null || (int) $promotion->filiere_id !== (int) $filiere->id) {
-            return null;
-        }
-
-        return [$filiere, $promotion];
+        return $ref;
     }
 
-    private function genererReference(Promotion $promotion, string $niveau): string
-    {
-        $anneeFin = substr((string) $promotion->annee->libelle, -4);
-        $prefix = sprintf('PV-%s-%s-%s-', $anneeFin, $promotion->filiere->code, $niveau);
-        $dernierNumero = Pv::withTrashed()
-            ->where('reference', 'like', $prefix.'%')
-            ->pluck('reference')
-            ->map(fn (string $reference): int => (int) substr($reference, strlen($prefix)))
-            ->max() ?? 0;
-
-        return $prefix.str_pad((string) ($dernierNumero + 1), 3, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * @return array<string, string>
-     */
+    /** Stockage PRIVÉ, nom aléatoire (jamais le nom d'origine). */
     private function stockerFichier(UploadedFile $fichier, Promotion $promotion): array
     {
         $dossier = 'pv/'.$promotion->annee->libelle.'/'.$promotion->filiere->code;
 
         return [
-            'fichier_path' => $fichier->store($dossier, 'public'),
+            'fichier_path' => $fichier->store($dossier, config('pv.disk')),
             'fichier_nom_original' => $fichier->getClientOriginalName(),
-            'fichier_mime' => $fichier->getMimeType() ?? 'application/octet-stream',
+            'fichier_mime' => $fichier->getMimeType(),
             'fichier_taille' => $fichier->getSize(),
         ];
-    }
-
-    private function journal(string $action, Pv $pv, string $description): void
-    {
-        ActivityLog::create([
-            'user_id' => auth()->id(),
-            'action' => $action,
-            'entite' => 'pv',
-            'entite_id' => $pv->id,
-            'description' => $description.' — '.$pv->reference,
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ]);
     }
 }

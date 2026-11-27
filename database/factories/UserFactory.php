@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -29,7 +30,7 @@ class UserFactory extends Factory
             'prenoms' => fake()->firstName(),
             'email' => fake()->unique()->safeEmail(),
             'password' => static::$password ??= Hash::make('password'),
-            'role' => 'scolarite',
+            'role' => Role::Scolarite,
             'filiere_id' => null,
             'is_active' => true,
             'must_change_password' => false,
@@ -37,18 +38,13 @@ class UserFactory extends Factory
         ];
     }
 
-    public function admin(): static
+    /**
+     * Indicate that the model's email address should be unverified.
+     */
+    public function unverified(): static
     {
-        return $this->state(fn (array $attributes): array => ['role' => 'admin']);
-    }
-
-    public function agent(): static
-    {
-        return $this->state(fn (array $attributes): array => ['role' => 'scolarite']);
-    }
-
-    public function chef(): static
-    {
-        return $this->state(fn (array $attributes): array => ['role' => 'chef']);
+        return $this->state(fn (array $attributes) => [
+            'must_change_password' => true,
+        ]);
     }
 }

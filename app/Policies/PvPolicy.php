@@ -2,80 +2,87 @@
 
 namespace App\Policies;
 
+use App\Enums\StatutPv;
 use App\Models\Pv;
 use App\Models\User;
 
-/** Matrice de droits : administrateur / agent de scolarité / chef de département. */
 class PvPolicy
 {
+    private function dansSaFiliere(User $user, Pv $pv): bool
+    {
+        return $user->isChef()
+            && $user->filiere_id !== null
+            && (int) $pv->promotion->filiere_id === (int) $user->filiere_id;
+    }
+
     public function viewAny(User $user): bool
     {
-        return true; // le périmètre est appliqué par Pv::visiblePour()
+        return true; // le périmètre est filtré par Pv::visiblePour()
     }
 
     public function view(User $user, Pv $pv): bool
     {
-        if ($user->isAdmin() || $user->isAgent()) {
+        if ($user->isAdmin() || $user->isScolarite()) {
             return true;
         }
 
-        return $this->dansLeDepartement($user, $pv);
+        return $this->dansSaFiliere($user, $pv) && $pv->statut !== StatutPv::Brouillon;
     }
 
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isAgent();
+        return $user->isAdmin() || $user->isScolarite();
     }
 
     public function update(User $user, Pv $pv): bool
     {
         if ($user->isAdmin()) {
-            return true; // PV archivé : motif obligatoire, modification journalisée.
+            return true; // exceptionnel, toujours journalisé
         }
 
-        return $user->isAgent() && $pv->statut === 'brouillon';
+        return $user->isScolarite() && $pv->statut === StatutPv::Brouillon;
     }
 
-    public function archive(User $user, Pv $pv): bool
-    {
-        return ($user->isAdmin() || $user->isAgent()) && $pv->statut === 'brouillon';
-    }
-
-    public function download(User $user): bool
-    {
-        return $user->isAdmin() || $user->isAgent();
-    }
-
-    public function viewResults(User $user): bool
-    {
-        return true; // lecture seule pour le chef
-    }
-
-    public function manageResults(User $user, Pv $pv): bool
+    public function gererResultats(User $user, Pv $pv): bool
     {
         return $this->update($user, $pv);
     }
 
-    public function export(User $user): bool
+    public function soumettre(User $user, Pv $pv): bool
     {
-        return $user->isAdmin() || $user->isAgent();
+        return ($user->isAdmin() || $user->isScolarite()) && $pv->statut === StatutPv::Brouillon;
     }
 
-    public function delete(User $user): bool
+    public function valider(User $user, Pv $pv): bool
+    {
+        if ($pv->statut !== StatutPv::Soumis) {
+            return false;
+        }
+
+        return $user->isAdmin() || $this->dansSaFiliere($user, $pv);
+    }
+
+    public function rejeter(User $user, Pv $pv): bool
+    {
+        return $this->valider($user, $pv);
+    }
+
+    public function archiver(User $user, Pv $pv): bool
+    {
+        return $user->isAdmin() && $pv->statut === StatutPv::Valide;
+    }
+
+    public function delete(User $user, Pv $pv): bool
     {
         return $user->isAdmin();
     }
 
-    private function dansLeDepartement(User $user, Pv $pv): bool
+    public function partager(User $user, Pv $pv): bool
     {
-        $codes = $user->departementFilieres();
-
-        if (! $user->isChef() || $codes === []) {
+        if (! $pv->estOfficiel()) {
             return false;
         }
 
-        $code = $pv->promotion()->with('filiere')->first()?->filiere?->code;
-
-        return $code !== null && in_array($code, $codes, true);
+        return $user->isAdmin() || $this->dansSaFiliere($user, $pv);
     }
 }
