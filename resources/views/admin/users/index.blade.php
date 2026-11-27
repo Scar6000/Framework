@@ -7,26 +7,24 @@
         $roles = [
             ['key' => 'administrateur', 'label' => 'Administrateur'],
             ['key' => 'agent', 'label' => 'Agent de scolarité'],
-            ['key' => 'chef', 'label' => 'Chef de département / Direction'],
+            ['key' => 'chef', 'label' => 'Chef de département'],
         ];
 
         $users = [
             ['key' => 'agadame', 'initials' => 'JA', 'name' => 'Dr Jean Théophile Agadamè', 'email' => 'j.agadame@eneam.sn', 'role' => 'Administrateur', 'tone' => 'dark', 'attachment' => '—', 'last_login' => '24/11/2026 — 09 h 42', 'active' => true],
             ['key' => 'kone', 'initials' => 'AK', 'name' => 'Aminata Koné', 'email' => 'a.kone@eneam.sn', 'role' => 'Agent de scolarité', 'tone' => 'blue', 'attachment' => '—', 'last_login' => '24/11/2026 — 08 h 57', 'active' => true],
-            ['key' => 'diop', 'initials' => 'MD', 'name' => 'Mamadou Diop', 'email' => 'm.diop@eneam.sn', 'role' => 'Chef de département / Direction', 'tone' => 'gold', 'attachment' => 'Département Informatique de gestion', 'last_login' => '23/11/2026 — 16 h 14', 'active' => true],
-            ['key' => 'nnesson', 'initials' => 'SN', 'name' => 'Sophie Nénesson', 'email' => 's.nnesson@eneam.sn', 'role' => 'Chef de département / Direction', 'tone' => 'gold', 'attachment' => 'Direction des études', 'last_login' => '23/11/2026 — 14 h 03', 'active' => true],
+            ['key' => 'diop', 'initials' => 'MD', 'name' => 'Mamadou Diop', 'email' => 'm.diop@eneam.sn', 'role' => 'Chef de département', 'tone' => 'gold', 'attachment' => 'Département Informatique de gestion', 'last_login' => '23/11/2026 — 16 h 14', 'active' => true],
+            ['key' => 'nnesson', 'initials' => 'SN', 'name' => 'Sophie Nénesson', 'email' => 's.nnesson@eneam.sn', 'role' => 'Chef de département', 'tone' => 'gold', 'attachment' => 'Département Statistique', 'last_login' => '23/11/2026 — 14 h 03', 'active' => true],
             ['key' => 'bathily', 'initials' => 'YB', 'name' => 'Yaya Bathily', 'email' => 'y.bathily@eneam.sn', 'role' => 'Agent de scolarité', 'tone' => 'blue', 'attachment' => '—', 'last_login' => '23/11/2026 — 11 h 26', 'active' => true],
             ['key' => 'ly', 'initials' => 'FL', 'name' => 'Fatou Ly', 'email' => 'f.ly@eneam.sn', 'role' => 'Administrateur', 'tone' => 'dark', 'attachment' => '—', 'last_login' => '22/11/2026 — 17 h 38', 'active' => true],
             ['key' => 'sarr', 'initials' => 'MS', 'name' => 'Mariama Sarr', 'email' => 'm.sarr@eneam.sn', 'role' => 'Agent de scolarité', 'tone' => 'blue', 'attachment' => '—', 'last_login' => '12/10/2026 — 10 h 05', 'active' => false],
-            ['key' => 'faye', 'initials' => 'OF', 'name' => 'Ousmane Faye', 'email' => 'o.faye@eneam.sn', 'role' => 'Chef de département / Direction', 'tone' => 'gold', 'attachment' => 'Département Banque et finance', 'last_login' => '08/10/2026 — 15 h 20', 'active' => false],
+            ['key' => 'faye', 'initials' => 'OF', 'name' => 'Ousmane Faye', 'email' => 'o.faye@eneam.sn', 'role' => 'Chef de département', 'tone' => 'gold', 'attachment' => 'Département Banque et finance', 'last_login' => '08/10/2026 — 15 h 20', 'active' => false],
         ];
     @endphp
 
     <x-admin.page-header title="Utilisateurs" subtitle="Gestion des comptes et des accès à l'espace administrateur." :breadcrumb="['Accueil', 'Administration', 'Utilisateurs']">
         @slot('actions')
-            <button class="admin-button" type="button" data-drawer-open data-target="admin-user-create-drawer">
-                <x-admin.icon name="plus" /> Nouvel utilisateur
-            </button>
+            <x-ui.btn variant="primary" icon="plus" data-drawer-open="#admin-user-create-drawer">Nouvel utilisateur</x-ui.btn>
         @endslot
     </x-admin.page-header>
 
@@ -88,8 +86,8 @@
             </select>
         </div>
 
-        <button class="admin-button admin-button--small" type="submit"><x-admin.icon name="search" /> Rechercher</button>
-        <a class="admin-button admin-button--secondary admin-button--small" href="{{ route('admin.users.index') }}">Réinitialiser</a>
+        <x-ui.btn variant="primary" type="submit" icon="search">Rechercher</x-ui.btn>
+        <x-ui.btn variant="secondary" :href="route('admin.users.index')">Réinitialiser</x-ui.btn>
     </form>
 
     <section class="admin-section" aria-labelledby="admin-users-table-title">
@@ -102,46 +100,52 @@
             <div class="admin-table-wrap">
                 <table class="admin-table">
                     <caption class="sr-only" hidden>Liste des comptes utilisateurs</caption>
+                    <colgroup>
+                        <col class="col-ref">
+                        <col width="16%">
+                        <col width="22%">
+                        <col width="20%">
+                        <col width="10%">
+                        <col class="col-actions">
+                    </colgroup>
                     <thead>
                         <tr>
-                            <th scope="col">Utilisateur</th>
+                            <th scope="col" class="col-ref">Utilisateur</th>
                             <th scope="col">Rôle</th>
                             <th scope="col">Rattachement</th>
                             <th scope="col">Dernière connexion</th>
                             <th scope="col">Statut</th>
-                            <th scope="col"><span class="sr-only" hidden>Actions</span><button class="admin-table__filter" type="button" aria-label="Filtrer les utilisateurs"><x-admin.icon name="filter" /></button></th>
+                            <th scope="col" class="col-actions"><span class="sr-only" hidden>Actions</span><button class="admin-table__filter" type="button" aria-label="Filtrer les utilisateurs"><x-admin.icon name="filter" /></button></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($users as $index => $user)
+                            @php
+                                $rowActions = [
+                                    ['label' => 'Modifier', 'icon' => 'pencil', 'url' => '#'],
+                                    ['label' => 'Réinitialiser le mot de passe', 'icon' => 'key', 'url' => '#'],
+                                    ['label' => 'Désactiver', 'icon' => 'lock', 'url' => '#'],
+                                ];
+                            @endphp
                             <tr>
-                                <td>
+                                <td class="col-ref">
                                     <span class="admin-cell-user">
                                         <x-admin.avatar :initials="$user['initials']" size="sm" :label="'Profil de '.$user['name']" />
                                         <span class="admin-cell-user__text">
-                                            <span class="admin-table__primary">{{ $user['name'] }}</span>
-                                            <span class="admin-table__subtext">{{ $user['email'] }}</span>
+                                            <span class="admin-table__primary" title="{{ $user['name'] }}">{{ $user['name'] }}</span>
+                                            <span class="admin-table__subtext" title="{{ $user['email'] }}">{{ $user['email'] }}</span>
                                         </span>
                                     </span>
                                 </td>
                                 <td><x-admin.status :label="$user['role']" :tone="$user['tone']" /></td>
-                                <td class="{{ $user['attachment'] === '—' ? 'admin-muted' : '' }}">{{ $user['attachment'] }}</td>
+                                <td class="{{ $user['attachment'] === '—' ? 'admin-muted' : '' }}" title="{{ $user['attachment'] }}">{{ $user['attachment'] }}</td>
                                 <td class="admin-muted">{{ $user['last_login'] }}</td>
                                 <td>
                                     <x-admin.toggle name="active_{{ $user['key'] }}" :checked="$user['active']" :label="'Activer ou désactiver le compte de '.$user['name']" />
                                 </td>
-                                <td>
-                                    <div class="admin-table__actions">
-                                        <div class="admin-dropdown">
-                                            <button class="admin-table__filter" type="button" data-dropdown aria-controls="admin-user-menu-{{ $index }}" aria-expanded="false" aria-label="Actions pour {{ $user['name'] }}"><x-admin.icon name="more" /></button>
-                                            <div class="admin-dropdown__menu" id="admin-user-menu-{{ $index }}" hidden>
-                                                {{-- TODO: relier ces actions aux routes de gestion des utilisateurs --}}
-                                                <button class="admin-dropdown__item" type="button"><x-admin.icon name="pencil" /> Modifier</button>
-                                                <button class="admin-dropdown__item" type="button"><x-admin.icon name="key" /> Réinitialiser le mot de passe</button>
-                                                <button class="admin-dropdown__item" type="button"><x-admin.icon name="lock" /> Désactiver</button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <td class="col-actions">
+                                    {{-- TODO: relier ces actions aux routes de gestion des utilisateurs --}}
+                                    <x-ui.table-actions :reference="$user['name']" :preview="route('admin.users.index')" :actions="$rowActions" />
                                 </td>
                             </tr>
                         @endforeach
@@ -162,17 +166,7 @@
         </div>
     </section>
 
-    {{-- L'overlay est créé automatiquement par public/js/admin.js --}}
-    <aside class="admin-drawer" id="admin-user-create-drawer" hidden aria-labelledby="admin-user-drawer-title">
-        <div class="admin-drawer__head">
-            <div>
-                <h2 class="admin-drawer__title" id="admin-user-drawer-title">Nouvel utilisateur</h2>
-                <p class="admin-drawer__subtitle">Créer un accès nominatif à l'espace administrateur.</p>
-            </div>
-            <button class="admin-icon-button admin-icon-button--plain" type="button" data-overlay-close aria-label="Fermer"><x-admin.icon name="close" /></button>
-        </div>
-
-        <div class="admin-drawer__body">
+    <x-ui.drawer id="admin-user-create-drawer" title="Nouvel utilisateur" subtitle="Créer un accès nominatif à l'espace administrateur.">
             {{-- TODO: relier à la route de création des utilisateurs --}}
             <form id="admin-user-create-form" action="#" method="POST">
                 @csrf
@@ -208,9 +202,9 @@
                     </div>
 
                     <div class="admin-field admin-form-grid__full{{ isset($errors) && $errors->has('rattachement') ? ' admin-field--invalid' : '' }}">
-                        <label class="admin-field__label" for="admin-user-attachment">Rattachement</label>
-                        <input class="admin-input" id="admin-user-attachment" name="rattachement" type="text" value="{{ old('rattachement') }}" placeholder="Département ou direction" @error('rattachement') aria-invalid="true" aria-describedby="admin-user-attachment-error" @else aria-invalid="false" @enderror>
-                        <span class="admin-table__subtext">Requis uniquement pour le profil Chef de département / Direction.</span>
+                        <label class="admin-field__label" for="admin-user-attachment">Département</label>
+                        <input class="admin-input" id="admin-user-attachment" name="rattachement" type="text" value="{{ old('rattachement') }}" placeholder="Ex. Département Informatique" @required(old('role') === 'chef') @error('rattachement') aria-invalid="true" aria-describedby="admin-user-attachment-error" @else aria-invalid="false" @enderror>
+                        <span class="admin-table__subtext">Requis pour le profil Chef de département.</span>
                         @error('rattachement')
                             <p class="admin-field__error" id="admin-user-attachment-error"><x-admin.icon name="alert" /> {{ $message }}</p>
                         @enderror
@@ -235,13 +229,12 @@
                     </label>
                 </div>
             </form>
-        </div>
 
-        <div class="admin-drawer__footer">
-            <div class="admin-form-actions">
-                <button class="admin-button admin-button--secondary" type="button" data-overlay-close>Annuler</button>
-                <button class="admin-button" type="submit" form="admin-user-create-form"><x-admin.icon name="check" /> Créer le compte</button>
-            </div>
-        </div>
-    </aside>
+            <x-slot:footer>
+                <div class="admin-form-actions">
+                    <x-ui.btn variant="secondary">Annuler</x-ui.btn>
+                    <x-ui.btn variant="primary" type="submit" form="admin-user-create-form" icon="check">Créer le compte</x-ui.btn>
+                </div>
+            </x-slot:footer>
+    </x-ui.drawer>
 @endsection

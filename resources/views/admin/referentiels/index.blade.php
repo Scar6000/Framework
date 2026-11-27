@@ -30,15 +30,6 @@
             ['code' => 'M2', 'label' => 'Master 2', 'cycle' => 'Master', 'duration' => '1 an', 'promotions' => 5],
         ];
 
-        $semesters = [
-            ['code' => 'S1', 'label' => 'Semestre 1', 'type' => 'Impair', 'status' => 'Actif', 'tone' => 'blue'],
-            ['code' => 'S2', 'label' => 'Semestre 2', 'type' => 'Pair', 'status' => 'Actif', 'tone' => 'blue'],
-            ['code' => 'S3', 'label' => 'Semestre 3', 'type' => 'Impair', 'status' => 'Actif', 'tone' => 'blue'],
-            ['code' => 'S4', 'label' => 'Semestre 4', 'type' => 'Pair', 'status' => 'Actif', 'tone' => 'blue'],
-            ['code' => 'S5', 'label' => 'Semestre 5', 'type' => 'Impair', 'status' => 'Actif', 'tone' => 'blue'],
-            ['code' => 'S6', 'label' => 'Semestre 6', 'type' => 'Pair', 'status' => 'En préparation', 'tone' => 'gold'],
-        ];
-
         $promotions = [
             ['label' => 'IG L1 2025-2026', 'code' => 'IG-L1-2025', 'year' => '2025-2026', 'filiere' => 'Informatique de gestion', 'level' => 'L1', 'effectif' => 48, 'status' => 'Active', 'tone' => 'blue'],
             ['label' => 'BF L2 2025-2026', 'code' => 'BF-L2-2025', 'year' => '2025-2026', 'filiere' => 'Banque et finance', 'level' => 'L2', 'effectif' => 44, 'status' => 'Active', 'tone' => 'blue'],
@@ -50,9 +41,9 @@
         ];
     @endphp
 
-    <x-admin.page-header title="Référentiels" subtitle="Années académiques, filières, niveaux, semestres et promotions de l'établissement." :breadcrumb="['Accueil', 'Administration', 'Référentiels']">
+    <x-admin.page-header title="Référentiels" subtitle="Années académiques, filières, niveaux et promotions de l'établissement." :breadcrumb="['Accueil', 'Administration', 'Référentiels']">
         @slot('actions')
-            <a class="admin-button admin-button--secondary" href="{{ route('admin.referentiels.index') }}"><x-admin.icon name="refresh" /> Actualiser</a>
+            <x-ui.btn variant="secondary" :href="route('admin.referentiels.index')" icon="refresh">Actualiser</x-ui.btn>
         @endslot
     </x-admin.page-header>
 
@@ -64,40 +55,46 @@
                 <button class="admin-tabs__button" id="admin-ref-tab-annees" type="button" role="tab" aria-selected="true" aria-controls="admin-ref-panel-annees" data-tab="annees">Années académiques</button>
                 <button class="admin-tabs__button" id="admin-ref-tab-filieres" type="button" role="tab" aria-selected="false" aria-controls="admin-ref-panel-filieres" data-tab="filieres" tabindex="-1">Filières</button>
                 <button class="admin-tabs__button" id="admin-ref-tab-niveaux" type="button" role="tab" aria-selected="false" aria-controls="admin-ref-panel-niveaux" data-tab="niveaux" tabindex="-1">Niveaux</button>
-                <button class="admin-tabs__button" id="admin-ref-tab-semestres" type="button" role="tab" aria-selected="false" aria-controls="admin-ref-panel-semestres" data-tab="semestres" tabindex="-1">Semestres</button>
                 <button class="admin-tabs__button" id="admin-ref-tab-promotions" type="button" role="tab" aria-selected="false" aria-controls="admin-ref-panel-promotions" data-tab="promotions" tabindex="-1">Promotions</button>
             </div>
 
             <div id="admin-ref-panel-annees" role="tabpanel" aria-labelledby="admin-ref-tab-annees" data-tab-panel="annees">
                 <div class="admin-card__head">
                     <h3 class="admin-card__title">Années académiques</h3>
-                    <button class="admin-button admin-button--small" type="button" data-drawer-open data-target="admin-ref-create-drawer"><x-admin.icon name="plus" /> Ajouter</button>
+                    <x-ui.btn variant="compact" icon="plus" data-drawer-open="#admin-ref-create-drawer">Ajouter</x-ui.btn>
                 </div>
 
                 <div class="admin-table-wrap">
                     <table class="admin-table">
                         <caption class="sr-only" hidden>Années académiques enregistrées</caption>
+                        <colgroup>
+                            <col class="col-ref">
+                            <col width="26%">
+                            <col width="14%">
+                            <col width="12%">
+                            <col class="col-actions">
+                        </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col">Année</th>
+                                <th scope="col" class="col-ref">Année</th>
                                 <th scope="col">Période</th>
                                 <th scope="col">Statut</th>
                                 <th scope="col">Promotions</th>
-                                <th scope="col"><span class="sr-only" hidden>Actions</span><button class="admin-table__filter" type="button" aria-label="Filtrer les années académiques"><x-admin.icon name="filter" /></button></th>
+                                <th scope="col" class="col-actions"><span class="sr-only" hidden>Actions</span><button class="admin-table__filter" type="button" aria-label="Filtrer les années académiques"><x-admin.icon name="filter" /></button></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($years as $index => $year)
                                 <tr>
-                                    <td><span class="admin-table__primary">{{ $year['label'] }}</span></td>
-                                    <td class="admin-muted">{{ $year['period'] }}</td>
+                                    <td title="{{ $year['label'] }}"><span class="admin-table__primary">{{ $year['label'] }}</span></td>
+                                    <td class="admin-muted" title="{{ $year['period'] }}">{{ $year['period'] }}</td>
                                     <td><x-admin.status :label="$year['status']" :tone="$year['tone']" /></td>
                                     <td>{{ $year['promotions'] }}</td>
                                     <td>
                                         <div class="admin-table__actions">
                                             @if (! $year['current'])
                                                 {{-- TODO: relier à la route de définition de l'année en cours --}}
-                                                <button class="admin-button admin-button--secondary admin-button--small" type="button">Définir comme année en cours</button>
+                                                <x-ui.btn variant="secondary">Définir comme année en cours</x-ui.btn>
                                             @endif
                                             <div class="admin-dropdown">
                                                 <button class="admin-table__filter" type="button" data-dropdown aria-controls="admin-ref-annees-menu-{{ $index }}" aria-expanded="false" aria-label="Actions pour {{ $year['label'] }}"><x-admin.icon name="more" /></button>
@@ -120,29 +117,38 @@
             <div id="admin-ref-panel-filieres" role="tabpanel" aria-labelledby="admin-ref-tab-filieres" data-tab-panel="filieres" hidden>
                 <div class="admin-card__head">
                     <h3 class="admin-card__title">Filières</h3>
-                    <button class="admin-button admin-button--small" type="button" data-drawer-open data-target="admin-ref-create-drawer"><x-admin.icon name="plus" /> Ajouter</button>
+                    <x-ui.btn variant="compact" icon="plus" data-drawer-open="#admin-ref-create-drawer">Ajouter</x-ui.btn>
                 </div>
 
                 <div class="admin-table-wrap">
                     <table class="admin-table">
                         <caption class="sr-only" hidden>Filières enregistrées</caption>
+                        <colgroup>
+                            <col class="col-ref">
+                            <col width="24%">
+                            <col width="24%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="12%">
+                            <col class="col-actions">
+                        </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col">Code</th>
+                                <th scope="col" class="col-ref">Code</th>
                                 <th scope="col">Filière</th>
                                 <th scope="col">Département</th>
                                 <th scope="col">Promotions</th>
                                 <th scope="col">Effectif</th>
                                 <th scope="col">Statut</th>
-                                <th scope="col"><span class="sr-only" hidden>Actions</span><button class="admin-table__filter" type="button" aria-label="Filtrer les filières"><x-admin.icon name="filter" /></button></th>
+                                <th scope="col" class="col-actions"><span class="sr-only" hidden>Actions</span><button class="admin-table__filter" type="button" aria-label="Filtrer les filières"><x-admin.icon name="filter" /></button></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($filieres as $index => $filere)
                                 <tr>
-                                    <td><span class="admin-status admin-status--slate">{{ $filere['code'] }}</span></td>
-                                    <td><span class="admin-table__primary">{{ $filere['name'] }}</span></td>
-                                    <td class="admin-muted">{{ $filere['department'] }}</td>
+                                    <td class="col-ref"><x-ui.badge :label="$filere['code']" tone="neutral" /></td>
+                                    <td title="{{ $filere['name'] }}"><span class="admin-table__primary">{{ $filere['name'] }}</span></td>
+                                    <td class="admin-muted" title="{{ $filere['department'] }}">{{ $filere['department'] }}</td>
                                     <td>{{ $filere['promotions'] }}</td>
                                     <td>{{ $filere['effectif'] }}</td>
                                     <td><x-admin.status :label="$filere['status']" :tone="$filere['tone']" /></td>
@@ -169,27 +175,35 @@
             <div id="admin-ref-panel-niveaux" role="tabpanel" aria-labelledby="admin-ref-tab-niveaux" data-tab-panel="niveaux" hidden>
                 <div class="admin-card__head">
                     <h3 class="admin-card__title">Niveaux</h3>
-                    <button class="admin-button admin-button--small" type="button" data-drawer-open data-target="admin-ref-create-drawer"><x-admin.icon name="plus" /> Ajouter</button>
+                    <x-ui.btn variant="compact" icon="plus" data-drawer-open="#admin-ref-create-drawer">Ajouter</x-ui.btn>
                 </div>
 
                 <div class="admin-table-wrap">
                     <table class="admin-table">
                         <caption class="sr-only" hidden>Niveaux d'étude enregistrés</caption>
+                        <colgroup>
+                            <col class="col-ref">
+                            <col width="26%">
+                            <col width="20%">
+                            <col width="14%">
+                            <col width="14%">
+                            <col class="col-actions">
+                        </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col">Code</th>
+                                <th scope="col" class="col-ref">Code</th>
                                 <th scope="col">Libellé</th>
                                 <th scope="col">Cycle</th>
                                 <th scope="col">Durée</th>
                                 <th scope="col">Promotions</th>
-                                <th scope="col"><span class="sr-only" hidden>Actions</span><button class="admin-table__filter" type="button" aria-label="Filtrer les niveaux"><x-admin.icon name="filter" /></button></th>
+                                <th scope="col" class="col-actions"><span class="sr-only" hidden>Actions</span><button class="admin-table__filter" type="button" aria-label="Filtrer les niveaux"><x-admin.icon name="filter" /></button></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($levels as $index => $level)
                                 <tr>
-                                    <td><span class="admin-status admin-status--blue">{{ $level['code'] }}</span></td>
-                                    <td><span class="admin-table__primary">{{ $level['label'] }}</span></td>
+                                    <td class="col-ref"><x-ui.badge :label="$level['code']" tone="blue" /></td>
+                                    <td title="{{ $level['label'] }}"><span class="admin-table__primary">{{ $level['label'] }}</span></td>
                                     <td class="admin-muted">{{ $level['cycle'] }}</td>
                                     <td>{{ $level['duration'] }}</td>
                                     <td>{{ $level['promotions'] }}</td>
@@ -213,80 +227,44 @@
                 </div>
             </div>
 
-            <div id="admin-ref-panel-semestres" role="tabpanel" aria-labelledby="admin-ref-tab-semestres" data-tab-panel="semestres" hidden>
-                <div class="admin-card__head">
-                    <h3 class="admin-card__title">Semestres</h3>
-                    <button class="admin-button admin-button--small" type="button" data-drawer-open data-target="admin-ref-create-drawer"><x-admin.icon name="plus" /> Ajouter</button>
-                </div>
-
-                <div class="admin-table-wrap">
-                    <table class="admin-table">
-                        <caption class="sr-only" hidden>Semestres enregistrés</caption>
-                        <thead>
-                            <tr>
-                                <th scope="col">Code</th>
-                                <th scope="col">Libellé</th>
-                                <th scope="col">Type</th>
-                                <th scope="col">Statut</th>
-                                <th scope="col"><span class="sr-only" hidden>Actions</span><button class="admin-table__filter" type="button" aria-label="Filtrer les semestres"><x-admin.icon name="filter" /></button></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($semesters as $index => $semester)
-                                <tr>
-                                    <td><span class="admin-status admin-status--slate">{{ $semester['code'] }}</span></td>
-                                    <td><span class="admin-table__primary">{{ $semester['label'] }}</span></td>
-                                    <td class="admin-muted">{{ $semester['type'] }}</td>
-                                    <td><x-admin.status :label="$semester['status']" :tone="$semester['tone']" /></td>
-                                    <td>
-                                        <div class="admin-table__actions">
-                                            <div class="admin-dropdown">
-                                                <button class="admin-table__filter" type="button" data-dropdown aria-controls="admin-ref-semestres-menu-{{ $index }}" aria-expanded="false" aria-label="Actions pour {{ $semester['label'] }}"><x-admin.icon name="more" /></button>
-                                                <div class="admin-dropdown__menu" id="admin-ref-semestres-menu-{{ $index }}" hidden>
-                                                    {{-- TODO: relier aux routes de gestion des référentiels --}}
-                                                    <button class="admin-dropdown__item" type="button"><x-admin.icon name="pencil" /> Modifier</button>
-                                                    <button class="admin-dropdown__item" type="button"><x-admin.icon name="copy" /> Dupliquer</button>
-                                                    <button class="admin-dropdown__item" type="button"><x-admin.icon name="archive" /> Archiver</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
             <div id="admin-ref-panel-promotions" role="tabpanel" aria-labelledby="admin-ref-tab-promotions" data-tab-panel="promotions" hidden>
                 <div class="admin-card__head">
                     <h3 class="admin-card__title">Promotions</h3>
-                    <button class="admin-button admin-button--small" type="button" data-drawer-open data-target="admin-ref-create-drawer"><x-admin.icon name="plus" /> Ajouter</button>
+                    <x-ui.btn variant="compact" icon="plus" data-drawer-open="#admin-ref-create-drawer">Ajouter</x-ui.btn>
                 </div>
 
                 <div class="admin-table-wrap">
                     <table class="admin-table">
                         <caption class="sr-only" hidden>Promotions enregistrées</caption>
+                        <colgroup>
+                            <col class="col-ref">
+                            <col width="16%">
+                            <col width="24%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="12%">
+                            <col class="col-actions">
+                        </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col">Promotion</th>
+                                <th scope="col" class="col-ref">Promotion</th>
                                 <th scope="col">Année académique</th>
                                 <th scope="col">Filière</th>
                                 <th scope="col">Niveau</th>
                                 <th scope="col">Effectif</th>
                                 <th scope="col">Statut</th>
-                                <th scope="col"><span class="sr-only" hidden>Actions</span><button class="admin-table__filter" type="button" aria-label="Filtrer les promotions"><x-admin.icon name="filter" /></button></th>
+                                <th scope="col" class="col-actions"><span class="sr-only" hidden>Actions</span><button class="admin-table__filter" type="button" aria-label="Filtrer les promotions"><x-admin.icon name="filter" /></button></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($promotions as $index => $promotion)
                                 <tr>
-                                    <td>
+                                    <td class="col-ref" title="{{ $promotion['label'] }} — {{ $promotion['code'] }}">
                                         <span class="admin-table__primary">{{ $promotion['label'] }}</span>
                                         <span class="admin-table__subtext">{{ $promotion['code'] }}</span>
                                     </td>
                                     <td class="admin-muted">{{ $promotion['year'] }}</td>
-                                    <td>{{ $promotion['filiere'] }}</td>
+                                    <td title="{{ $promotion['filiere'] }}">{{ $promotion['filiere'] }}</td>
                                     <td>{{ $promotion['level'] }}</td>
                                     <td>{{ $promotion['effectif'] }}</td>
                                     <td><x-admin.status :label="$promotion['status']" :tone="$promotion['tone']" /></td>
@@ -312,17 +290,7 @@
         </div>
     </section>
 
-    {{-- L'overlay est créé automatiquement par public/js/admin.js --}}
-    <aside class="admin-drawer" id="admin-ref-create-drawer" hidden aria-labelledby="admin-ref-drawer-title">
-        <div class="admin-drawer__head">
-            <div>
-                <h2 class="admin-drawer__title" id="admin-ref-drawer-title">Ajouter un référentiel</h2>
-                <p class="admin-drawer__subtitle">Enregistrer une nouvelle valeur dans l'un des référentiels.</p>
-            </div>
-            <button class="admin-icon-button admin-icon-button--plain" type="button" data-overlay-close aria-label="Fermer"><x-admin.icon name="close" /></button>
-        </div>
-
-        <div class="admin-drawer__body">
+    <x-ui.drawer id="admin-ref-create-drawer" title="Ajouter un référentiel" subtitle="Enregistrer une nouvelle valeur dans l'un des référentiels.">
             {{-- TODO: relier à la route de création des référentiels --}}
             <form id="admin-ref-create-form" action="#" method="POST">
                 @csrf
@@ -343,7 +311,6 @@
                             <option value="annee"{{ old('type') === 'annee' ? ' selected' : '' }}>Année académique</option>
                             <option value="filiere"{{ old('type') === 'filiere' ? ' selected' : '' }}>Filière</option>
                             <option value="niveau"{{ old('type') === 'niveau' ? ' selected' : '' }}>Niveau</option>
-                            <option value="semestre"{{ old('type') === 'semestre' ? ' selected' : '' }}>Semestre</option>
                             <option value="promotion"{{ old('type') === 'promotion' ? ' selected' : '' }}>Promotion</option>
                         </select>
                         @error('type')
@@ -382,13 +349,12 @@
                     </div>
                 </div>
             </form>
-        </div>
 
-        <div class="admin-drawer__footer">
-            <div class="admin-form-actions">
-                <button class="admin-button admin-button--secondary" type="button" data-overlay-close>Annuler</button>
-                <button class="admin-button" type="submit" form="admin-ref-create-form"><x-admin.icon name="check" /> Ajouter</button>
-            </div>
-        </div>
-    </aside>
+            <x-slot:footer>
+                <div class="admin-form-actions">
+                    <x-ui.btn variant="secondary">Annuler</x-ui.btn>
+                    <x-ui.btn variant="primary" type="submit" form="admin-ref-create-form" icon="check">Ajouter</x-ui.btn>
+                </div>
+            </x-slot:footer>
+    </x-ui.drawer>
 @endsection

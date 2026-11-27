@@ -43,7 +43,6 @@
 
     var sidebar = document.getElementById('admin-sidebar');
     var sidebarOpenButton = document.querySelector('[data-sidebar-open]');
-    var sidebarCloseButton = document.querySelector('[data-sidebar-close]');
     var sidebarBackdrop = document.querySelector('[data-sidebar-backdrop]');
 
     function openSidebar() {
@@ -57,9 +56,6 @@
         }
         if (sidebarOpenButton) {
             sidebarOpenButton.setAttribute('aria-expanded', 'true');
-        }
-        if (sidebarCloseButton) {
-            sidebarCloseButton.focus();
         }
     }
 
@@ -80,10 +76,6 @@
 
     if (sidebarOpenButton) {
         sidebarOpenButton.addEventListener('click', openSidebar);
-    }
-
-    if (sidebarCloseButton) {
-        sidebarCloseButton.addEventListener('click', closeSidebar);
     }
 
     if (sidebarBackdrop) {
@@ -282,7 +274,8 @@
         });
     }
 
-    document.querySelectorAll('[data-drawer-open], [data-modal-open]').forEach(function (trigger) {
+    // Les tiroirs sont gérés par ui-motion.js (x-ui.drawer) ; ici seulement les modales.
+    document.querySelectorAll('[data-modal-open]').forEach(function (trigger) {
         trigger.addEventListener('click', function (event) {
             event.preventDefault();
             var targetId = trigger.getAttribute('data-target') || trigger.getAttribute('aria-controls');
@@ -295,9 +288,9 @@
     });
 
     if (window.location.hash) {
-        var hashedTarget = document.querySelector(window.location.hash);
+        var hashedTarget = document.getElementById(window.location.hash.replace(/^#/, ''));
 
-        if (hashedTarget && (hashedTarget.classList.contains('admin-drawer') || hashedTarget.classList.contains('admin-modal'))) {
+        if (hashedTarget && hashedTarget.classList.contains('admin-modal')) {
             openOverlay(hashedTarget.id);
         }
     }
@@ -364,23 +357,8 @@
     });
 
     /* ----------------------------------------------------------------------
-       Pastilles de semestre et cases à cocher groupées
+       Cases à cocher groupées
        ---------------------------------------------------------------------- */
-
-    document.querySelectorAll('.admin-semester-row').forEach(function (group) {
-        group.addEventListener('click', function (event) {
-            var button = event.target.closest('.admin-semester');
-
-            if (!button) {
-                return;
-            }
-
-            group.querySelectorAll('.admin-semester').forEach(function (item) {
-                item.classList.toggle('is-active', item === button);
-                item.setAttribute('aria-pressed', String(item === button));
-            });
-        });
-    });
 
     document.querySelectorAll('[data-select-all]').forEach(function (checkbox) {
         checkbox.addEventListener('change', function () {

@@ -15,12 +15,12 @@
                 'name' => 'Dr Jean Théophile Agadamè',
                 'role' => 'Administrateur',
                 'action' => 'Modification',
-                'object' => 'PV / PV-2026-IG-L3-S2-014',
+                'object' => 'PV / PV-2026-IG-L3-014',
                 'ip' => '10.12.4.18',
                 'tone' => 'gold',
                 'avatarTone' => 'gold',
-                'avant' => 'Statut : brouillon · Moyenne : 13,10 / 20',
-                'apres' => 'Statut : validé · Moyenne : 13,18 / 20',
+                'avant' => 'Session normale · Statut : Brouillon · Moyenne : 13,10 / 20',
+                'apres' => 'Session normale · Statut : Brouillon · Moyenne : 13,18 / 20',
                 'motif' => 'Correction de la moyenne après vérification du procès-verbal signé.',
             ],
             [
@@ -28,8 +28,8 @@
                 'initials' => 'AK',
                 'name' => 'Aminata Koné',
                 'role' => 'Agent de scolarité',
-                'action' => 'Enregistrement',
-                'object' => 'PV / PV-2026-BF-L2-S1-008',
+                'action' => 'Création',
+                'object' => 'PV / PV-2026-BF-L2-008',
                 'ip' => '10.12.4.31',
                 'tone' => 'blue',
                 'avatarTone' => 'soft',
@@ -41,25 +41,25 @@
                 'date' => '23/11/2026 — 16 h 14',
                 'initials' => 'MD',
                 'name' => 'Mamadou Diop',
-                'role' => 'Responsable des archives',
-                'action' => 'Validation',
-                'object' => 'PV / PV-2026-CCA-L3-S1-021',
+                'role' => 'Chef de département',
+                'action' => 'Archivage',
+                'object' => 'PV / PV-2026-CCA-L3-021',
                 'ip' => '10.12.5.07',
-                'tone' => 'dark',
+                'tone' => 'blue',
                 'avatarTone' => 'blue',
-                'avant' => 'Validation en attente',
-                'apres' => 'Validation confirmée pour archivage',
-                'motif' => 'Contrôle de conformité des signatures effectué.',
+                'avant' => 'Statut : Brouillon',
+                'apres' => 'Statut : Archivé',
+                'motif' => 'Classement du procès-verbal signé dans les archives de l’année 2025-2026.',
             ],
             [
                 'date' => '23/11/2026 — 14 h 03',
                 'initials' => 'SN',
                 'name' => 'Sophie Nénesson',
-                'role' => 'Direction',
+                'role' => 'Chef de département',
                 'action' => 'Consultation',
                 'object' => 'Fiche étudiant / ENE-2023-1048',
                 'ip' => '10.12.2.44',
-                'tone' => 'slate',
+                'tone' => 'neutral',
                 'avatarTone' => 'soft',
                 'avant' => 'Aucune consultation enregistrée',
                 'apres' => 'Fiche consultée pendant quatre minutes',
@@ -73,7 +73,7 @@
                 'action' => 'Export',
                 'object' => 'Promotion / Informatique de gestion L3',
                 'ip' => '10.12.4.09',
-                'tone' => 'lightgold',
+                'tone' => 'neutral',
                 'avatarTone' => 'gold',
                 'avant' => 'Aucun export pour cette promotion',
                 'apres' => 'Export Excel généré pour 36 étudiants',
@@ -87,25 +87,69 @@
                 'action' => 'Connexion',
                 'object' => 'Session / Espace administrateur',
                 'ip' => '10.12.6.22',
-                'tone' => 'slate',
+                'tone' => 'neutral',
                 'avatarTone' => 'soft',
                 'avant' => 'Session inactive',
                 'apres' => 'Connexion établie depuis le poste de scolarité',
                 'motif' => 'Accès nécessaire à la mise à jour des informations scolaires.',
+            ],
+            [
+                'date' => '22/11/2026 — 10 h 05',
+                'initials' => 'JA',
+                'name' => 'Dr Jean Théophile Agadamè',
+                'role' => 'Administrateur',
+                'action' => 'Déverrouillage',
+                'object' => 'PV / PV-2026-GRH-L1-006',
+                'ip' => '10.12.4.18',
+                'tone' => 'gold',
+                'avatarTone' => 'gold',
+                'avant' => 'PV archivé verrouillé',
+                'apres' => 'PV archivé déverrouillé pour correction',
+                'motif' => 'Correction demandée par le secrétariat de scolarité.',
+            ],
+            [
+                'date' => '21/11/2026 — 15 h 12',
+                'initials' => 'AK',
+                'name' => 'Aminata Koné',
+                'role' => 'Agent de scolarité',
+                'action' => 'Import en masse',
+                'actionLabel' => 'Import en masse (12 PV)',
+                'object' => 'Lot / Année 2025-2026 — 12 PV',
+                'ip' => '10.12.4.31',
+                'tone' => 'blue',
+                'avatarTone' => 'soft',
+                'pvs' => [
+                    'PV-2026-IG-L1-001', 'PV-2026-IG-L2-002', 'PV-2026-BF-L1-003', 'PV-2026-BF-L3-004',
+                    'PV-2026-CCA-L2-005', 'PV-2026-CCA-L3-006', 'PV-2026-GRH-L1-007', 'PV-2026-GRH-L2-008',
+                    'PV-2026-MK-L1-009', 'PV-2026-MK-L3-010', 'PV-2026-ST-L2-011', 'PV-2026-ST-L3-012',
+                ],
+                'motif' => 'Import groupé depuis le fichier transmis par le centre de gestion.',
+            ],
+            [
+                'date' => '20/11/2026 — 16 h 48',
+                'initials' => 'FL',
+                'name' => 'Fatou Ly',
+                'role' => 'Administrateur',
+                'action' => 'Suppression',
+                'object' => 'Fichier / PV-2026-MK-L2-012.pdf',
+                'ip' => '10.12.4.09',
+                'tone' => 'red',
+                'avatarTone' => 'gold',
+                'avant' => 'Fichier joint présent au registre',
+                'apres' => 'Fichier joint retiré du registre',
+                'motif' => 'Doublon détecté lors de la numérisation.',
             ],
         ];
     @endphp
 
     <x-admin.page-header
         title="Journal d'audit"
-        subtitle="Consultez les connexions, validations et exports enregistrés dans l'ENEAM."
+        subtitle="Consultez les connexions, modifications, archivages et exports enregistrés dans l'ENEAM."
         :breadcrumb="['Accueil', 'Administration', 'Journal d’audit']"
     >
         <x-slot name="actions">
             <div class="admin-dropdown">
-                <button class="admin-button admin-button--small" type="button" data-dropdown aria-controls="admin-journal-export-menu" aria-expanded="false">
-                    <x-admin.icon name="download" /> Exporter <x-admin.icon name="chevron-down" />
-                </button>
+                <x-ui.btn variant="primary" type="button" data-dropdown aria-controls="admin-journal-export-menu" aria-expanded="false">Exporter <x-admin.icon name="chevron-down" /></x-ui.btn>
                 <div class="admin-dropdown__menu" id="admin-journal-export-menu" hidden>
                     <a class="admin-dropdown__item" href="{{ route('admin.exports.index') }}"><x-admin.icon name="file" /> Excel (.xlsx)</a>
                     <a class="admin-dropdown__item" href="{{ route('admin.exports.index') }}"><x-admin.icon name="pdf" /> PDF</a>
@@ -145,10 +189,13 @@
                     <option value="">Toutes les actions</option>
                     <option value="Connexion" {{ $selected('type_action', 'Connexion') }}>Connexion</option>
                     <option value="Consultation" {{ $selected('type_action', 'Consultation') }}>Consultation</option>
-                    <option value="Enregistrement" {{ $selected('type_action', 'Enregistrement') }}>Enregistrement</option>
+                    <option value="Création" {{ $selected('type_action', 'Création') }}>Création</option>
                     <option value="Modification" {{ $selected('type_action', 'Modification') }}>Modification</option>
-                    <option value="Validation" {{ $selected('type_action', 'Validation') }}>Validation</option>
+                    <option value="Archivage" {{ $selected('type_action', 'Archivage') }}>Archivage</option>
+                    <option value="Déverrouillage" {{ $selected('type_action', 'Déverrouillage') }}>Déverrouillage</option>
+                    <option value="Import en masse" {{ $selected('type_action', 'Import en masse') }}>Import en masse</option>
                     <option value="Export" {{ $selected('type_action', 'Export') }}>Export</option>
+                    <option value="Suppression" {{ $selected('type_action', 'Suppression') }}>Suppression</option>
                 </select>
                 @error('type_action')
                     <p class="admin-field__error"><x-admin.icon name="alert" /> {{ $message }}</p>
@@ -179,12 +226,8 @@
                 @enderror
             </label>
 
-            <button class="admin-button admin-button--small" type="submit">
-                <x-admin.icon name="filter" /> Filtrer
-            </button>
-            <a class="admin-button admin-button--secondary admin-button--small" href="{{ route('admin.journal.index') }}">
-                <x-admin.icon name="refresh" /> Réinitialiser
-            </a>
+            <x-ui.btn variant="primary" type="submit" icon="filter">Filtrer</x-ui.btn>
+            <x-ui.btn variant="secondary" :href="route('admin.journal.index')" icon="refresh">Réinitialiser</x-ui.btn>
         </form>
     </section>
 
@@ -199,7 +242,7 @@
         <div class="admin-section__head">
             <div>
                 <h2 class="admin-section__title" id="admin-journal-table-title">Entrées enregistrées</h2>
-                <p class="admin-section__hint">6 dernières entrées affichées sur 248.</p>
+                <p class="admin-section__hint">9 dernières entrées affichées sur 248.</p>
             </div>
         </div>
 
@@ -207,15 +250,24 @@
             <div class="admin-table-wrap">
                 <table class="admin-table">
                     <caption class="sr-only" hidden>Entrées les plus récentes du journal d'audit</caption>
+                    <colgroup>
+                        <col class="col-date">
+                        <col width="20%">
+                        <col width="14%">
+                        <col width="16%">
+                        <col class="col-ref">
+                        <col width="10%">
+                        <col class="col-actions">
+                    </colgroup>
                     <thead>
                         <tr>
-                            <th scope="col">Date et heure</th>
+                            <th scope="col" class="col-date">Date et heure</th>
                             <th scope="col">Utilisateur</th>
                             <th scope="col">Rôle</th>
                             <th scope="col">Action</th>
-                            <th scope="col">Objet</th>
+                            <th scope="col" class="col-ref">Objet</th>
                             <th scope="col">Adresse IP</th>
-                            <th scope="col"><span class="sr-only" hidden>Détails</span></th>
+                            <th scope="col" class="col-actions"><span class="sr-only" hidden>Détails</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -224,22 +276,22 @@
                                 $detailId = 'detail-journal-'.($index + 1);
                             @endphp
                             <tr>
-                                <td class="admin-muted">{{ $entry['date'] }}</td>
+                                <td class="admin-muted col-date">{{ $entry['date'] }}</td>
                                 <td>
                                     <span class="admin-cell-user">
                                         <x-admin.avatar :initials="$entry['initials']" size="sm" :tone="$entry['avatarTone']" :label="$entry['name']" />
                                         <span class="admin-cell-user__text">
-                                            <span class="admin-table__primary">{{ $entry['name'] }}</span>
+                                            <span class="admin-table__primary" title="{{ $entry['name'] }}">{{ $entry['name'] }}</span>
                                         </span>
                                     </span>
                                 </td>
                                 <td>{{ $entry['role'] }}</td>
-                                <td><x-admin.status :label="$entry['action']" :tone="$entry['tone']" /></td>
-                                <td>{{ $entry['object'] }}</td>
+                                <td><x-admin.status :label="$entry['actionLabel'] ?? $entry['action']" :tone="$entry['tone']" /></td>
+                                <td class="col-ref" title="{{ $entry['object'] }}">{{ $entry['object'] }}</td>
                                 <td class="admin-muted">{{ $entry['ip'] }}</td>
-                                <td>
+                                <td class="col-actions">
                                     <div class="admin-table__actions">
-                                        <button type="button" class="admin-table__filter" data-details-toggle aria-controls="{{ $detailId }}" aria-expanded="false" aria-label="Voir les détails">
+                                        <button type="button" class="admin-table__filter" data-details-toggle aria-controls="{{ $detailId }}" aria-expanded="false" aria-label="Voir les détails de {{ $entry['action'] }}">
                                             <x-admin.icon name="chevron-down" />
                                         </button>
                                     </div>
@@ -247,16 +299,27 @@
                             </tr>
                             <tr id="{{ $detailId }}" class="admin-journal-details" hidden>
                                 <td colspan="7">
-                                    <div class="admin-diff">
-                                        <div class="admin-diff__block">
-                                            <h4>Avant</h4>
-                                            <p>{{ $entry['avant'] }}</p>
+                                    @if (! empty($entry['pvs']))
+                                        <div class="admin-diff">
+                                            <div class="admin-diff__block">
+                                                <h4>Références importées</h4>
+                                                @foreach ($entry['pvs'] as $reference)
+                                                    <p class="admin-tiny" title="{{ $reference }}">{{ $reference }}</p>
+                                                @endforeach
+                                            </div>
                                         </div>
-                                        <div class="admin-diff__block">
-                                            <h4>Après</h4>
-                                            <p>{{ $entry['apres'] }}</p>
+                                    @else
+                                        <div class="admin-diff">
+                                            <div class="admin-diff__block">
+                                                <h4>Avant</h4>
+                                                <p title="{{ $entry['avant'] }}">{{ $entry['avant'] }}</p>
+                                            </div>
+                                            <div class="admin-diff__block">
+                                                <h4>Après</h4>
+                                                <p title="{{ $entry['apres'] }}">{{ $entry['apres'] }}</p>
+                                            </div>
                                         </div>
-                                    </div>
+                                    @endif
                                     <p class="admin-tiny admin-muted"><strong>Motif :</strong> {{ $entry['motif'] }}</p>
                                 </td>
                             </tr>
@@ -266,7 +329,7 @@
             </div>
 
             <div class="admin-pagination">
-                <span>Affichage de 6 entrées sur 248</span>
+                <span>Affichage de 9 entrées sur 248</span>
                 <nav class="admin-pagination__list" aria-label="Pages du journal">
                     <a class="admin-pagination__link" href="{{ route('admin.journal.index') }}" aria-label="Page précédente">Précédent</a>
                     <a class="admin-pagination__link is-active" href="{{ route('admin.journal.index') }}" aria-current="page">1</a>

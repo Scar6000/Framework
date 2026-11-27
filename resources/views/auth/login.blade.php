@@ -37,14 +37,8 @@
 
             {{-- Panneau clair : identité visuelle et illustration --}}
             <div class="auth-showcase">
-                <div class="auth-brand">
-                    <span class="auth-brand__badge">
-                        <img class="auth-brand__logo" src="{{ asset('images/logo-eneam.png') }}" alt="Logo ENEAM" width="112" height="112">
-                    </span>
-                    <div class="auth-brand__text">
-                        <span class="auth-brand__name">ENEAM</span>
-                        <span class="auth-brand__tagline">École Nationale d'Économie Appliquée et de Management</span>
-                    </div>
+                <div class="auth-showcase__brand">
+                    <x-ui.brand />
                 </div>
 
                 <div class="auth-illustration">
@@ -137,7 +131,6 @@
                         <path d="M14 42 H30" stroke="#2F6BFF" stroke-width="3" stroke-linecap="round"></path>
                     </svg>
                     <div>
-                        <p>© 2026 ENEAM. Tous droits réservés.</p>
                         <p>Application de gestion des PV de délibération</p>
                     </div>
                 </div>
@@ -147,15 +140,7 @@
             <div class="auth-form-panel">
                 {{-- Lockup conservé sur mobile et tablette, où le panneau clair est masqué --}}
                 <div class="auth-form-panel__mobile-logo">
-                    <div class="auth-brand auth-brand--center">
-                        <span class="auth-brand__badge">
-                            <img class="auth-brand__logo" src="{{ asset('images/logo-eneam.png') }}" alt="Logo ENEAM" width="92" height="92">
-                        </span>
-                        <div class="auth-brand__text">
-                            <span class="auth-brand__name">ENEAM</span>
-                            <span class="auth-brand__tagline">École Nationale d'Économie Appliquée et de Management</span>
-                        </div>
-                    </div>
+                    <x-ui.brand />
                 </div>
 
                 <div class="auth-form-panel__content">
